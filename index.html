@@ -60,7 +60,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   padding:0;overflow:hidden;
 }
 .nav-brand{
-  padding:28px 20px 20px;
+  padding:calc(20px + env(safe-area-inset-top)) 20px 20px;
   border-bottom:1px solid var(--b1);
   flex-shrink:0;
 }
@@ -123,7 +123,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #home-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
 #home-topbar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:16px 24px;
+  padding:calc(14px + env(safe-area-inset-top)) 24px 14px;
   border-bottom:1px solid var(--b1);
   flex-shrink:0;
   background:var(--bg);
@@ -370,7 +370,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   width:var(--rail);min-width:var(--rail);flex-shrink:0;
   background:var(--s1);border-right:1px solid var(--b1);
   display:flex;flex-direction:column;align-items:center;
-  padding:10px 0;gap:2px;z-index:20;
+  padding:calc(10px + env(safe-area-inset-top)) 0 10px;gap:2px;z-index:20;
   overflow:hidden;
   transition:width .22s cubic-bezier(.4,0,.2,1),
              min-width .22s cubic-bezier(.4,0,.2,1),
@@ -450,9 +450,11 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 
 /* topbar */
 #canvas-topbar{
-  height:50px;flex-shrink:0;
+  height:calc(50px + env(safe-area-inset-top));
+  padding-top:env(safe-area-inset-top);
+  flex-shrink:0;
   background:var(--s1);border-bottom:1px solid var(--b1);
-  display:flex;align-items:center;padding:0 12px;gap:6px;
+  display:flex;align-items:center;padding-left:12px;padding-right:12px;gap:6px;
   z-index:10;
 }
 .tb-back{
@@ -1053,6 +1055,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
         <button class="tb-btn" onclick="exportPDF()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="12" y1="12" x2="12" y2="18"/></svg>
           PDF
+        </button>
+        <button class="tb-btn" onclick="exportBackup()" title="Backup notes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          Backup
         </button>
         <button class="tb-btn" onclick="toggleComfortPanel()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
@@ -1673,6 +1679,9 @@ function initCanvas(){
 
 function createPageDOM(i){
   const pgBg=PAGE_COLORS.find(c=>c.id===cv.note.pageColor)||PAGE_COLORS[0];
+  // Declare isDark FIRST before any use
+  const isDark=cv.note.pageColor==='dark'||cv.note.pageColor==='black';
+
   const wrap=document.createElement('div');
   wrap.className='page-wrap';
   wrap.dataset.page=i;
@@ -1697,22 +1706,29 @@ function createPageDOM(i){
 
   // page number
   const pn=document.createElement('div');
-  pn.className='pg-num';
+  pn.className='pg-num'+(isDark?' pg-num-dark':'');
   pn.textContent=(i+1)+' / '+cv.strokes.length;
-  const isDark=cv.note.pageColor==='dark'||cv.note.pageColor==='black';
-  if(isDark)pn.classList.add('pg-num-dark');
   wrap.appendChild(pn);
 
   // margin line
   const ml=document.createElement('div');
-  ml.className='';
   ml.id=`ml-${i}`;
   ml.style.cssText='position:absolute;top:0;bottom:0;left:15%;width:1.5px;background:rgba(200,80,80,.22);pointer-events:none;z-index:6;display:none;';
   wrap.appendChild(ml);
 
+  // IMPORTANT: create and push offscreen canvas BEFORE calling renderPageOffscreen
+  const oc=document.createElement('canvas');
+  oc.width=A4W*DPR;oc.height=A4H*DPR;
+  const octx=oc.getContext('2d');
+  octx.scale(DPR,DPR);
+  octx.imageSmoothingEnabled=true;
+  octx.imageSmoothingQuality='high';
+  cv.offscreens.push({canvas:oc,ctx:octx});
+  pageDOMs.push({wrap,canvas:pc,ctx:pctx,pgNum:pn});
+
   cInner.appendChild(wrap);
 
-  // gap between pages
+  // gap between pages (after this page, before next)
   if(i<cv.strokes.length-1){
     const gap=document.createElement('div');
     gap.className='page-gap';
@@ -1720,20 +1736,11 @@ function createPageDOM(i){
     cInner.appendChild(gap);
   }
 
-  // offscreen canvas for this page
-  const oc=document.createElement('canvas');
-  oc.width=A4W*DPR;oc.height=A4H*DPR;
-  const octx=oc.getContext('2d');
-  octx.scale(DPR,DPR);
-  cv.offscreens.push({canvas:oc,ctx:octx});
-
-  pageDOMs.push({wrap,canvas:pc,ctx:pctx,pgNum:pn});
-
-  // draw this page to offscreen then blit
+  // Now render — offscreen exists so fillRect will work
   renderPageOffscreen(i);
   blitPage(i);
 
-  // touch/mouse events on this canvas
+  // touch/mouse events
   attachCanvasEvents(pc);
 }
 
@@ -1742,6 +1749,12 @@ function renderPageOffscreen(i){
   if(!cv.offscreens[i])return;
   const{ctx}=cv.offscreens[i];
   const pgBg=PAGE_COLORS.find(c=>c.id===cv.note.pageColor)||PAGE_COLORS[0];
+  // Clear entire physical canvas first to avoid any leftover black
+  ctx.save();ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle=pgBg.bg;
+  ctx.fillRect(0,0,A4W*DPR,A4H*DPR);
+  ctx.restore();
+  // Now fill again in logical coords (DPR scale is active)
   ctx.fillStyle=pgBg.bg;
   ctx.fillRect(0,0,A4W,A4H);
   drawPageLinesCtx(ctx,i);
@@ -1755,7 +1768,12 @@ function renderPageOffscreen(i){
 function blitPage(i){
   if(!pageDOMs[i]||!cv.offscreens[i])return;
   const{ctx}=pageDOMs[i];
-  ctx.drawImage(cv.offscreens[i].canvas,0,0,A4W,A4H);
+  // Reset transform so we draw at physical pixel 1:1
+  // offscreen is A4W*DPR x A4H*DPR, visible canvas is same physical size
+  ctx.save();
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.drawImage(cv.offscreens[i].canvas,0,0);
+  ctx.restore();
 }
 
 // ── Redraw only one page ──
@@ -3478,39 +3496,76 @@ function nextBackupIn(){
 // Called on app open — checks if weekly backup is due
 async function checkWeeklyBackup(){
   if(!isAutoBackupEnabled())return;
-  if(!app.notes.length)return; // nothing to back up
+  if(!app.notes.length)return;
   const days=daysSinceLastBackup();
   if(days>=BACKUP_INTERVAL_DAYS){
-    // Small delay so app loads fully first
-    setTimeout(async()=>{
-      showWeeklyBackupToast();
-      await exportBackup(true); // silent=true, no extra toast
-    },2000);
+    // Don't auto-download — Safari requires a user gesture.
+    // Instead show a persistent banner with a tap-to-save button.
+    setTimeout(()=>showWeeklyBackupBanner(),1800);
   }
 }
 
-function showWeeklyBackupToast(){
-  // Custom toast for weekly backup — stays longer
+function showWeeklyBackupBanner(){
+  // Remove any existing banner
+  const old=document.getElementById('weekly-backup-banner');
+  if(old)old.remove();
+
   const el=document.createElement('div');
+  el.id='weekly-backup-banner';
   el.style.cssText=`
-    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    position:fixed;bottom:28px;left:50%;transform:translateX(-50%);
     background:var(--s1);border:1px solid var(--gold);
-    color:var(--t1);padding:12px 20px;border-radius:12px;
+    color:var(--t1);padding:12px 16px 12px 18px;border-radius:14px;
     font-size:12px;font-family:'Inter',sans-serif;
-    z-index:700;box-shadow:0 8px 32px rgba(0,0,0,.6);
+    z-index:700;box-shadow:0 8px 40px rgba(0,0,0,.7);
     display:flex;align-items:center;gap:12px;
-    animation:slideUp .3s ease;
+    animation:slideUp .35s cubic-bezier(.34,1.4,.64,1);
+    white-space:nowrap;
   `;
   el.innerHTML=`
-    <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;"></div>
+    <div style="width:7px;height:7px;border-radius:50%;background:var(--gold);
+      box-shadow:0 0 8px rgba(200,169,110,.6);flex-shrink:0;"></div>
     <div>
-      <div style="font-weight:500;color:var(--gold);margin-bottom:2px;">Weekly backup saved</div>
-      <div style="color:var(--t3);font-size:11px;font-family:'JetBrains Mono',monospace;">inkwell-weekly-backup.inkwell → Files → Downloads</div>
+      <div style="font-weight:500;color:var(--gold);margin-bottom:2px;font-size:12px;">
+        Weekly backup ready
+      </div>
+      <div style="color:var(--t3);font-size:10px;font-family:'JetBrains Mono',monospace;
+        letter-spacing:.04em;">
+        ${Math.floor(daysSinceLastBackup())} days since last backup
+      </div>
     </div>
-    <div onclick="this.parentElement.remove()" style="color:var(--t3);cursor:pointer;padding:4px;font-size:16px;margin-left:4px;">×</div>
+    <button onclick="doWeeklyBackupSave(this)" style="
+      background:var(--gold);color:#0b0b0e;border:none;
+      border-radius:8px;padding:7px 14px;font-size:11px;font-weight:500;
+      font-family:'Inter',sans-serif;cursor:pointer;flex-shrink:0;
+      transition:background .15s;
+    ">Save now</button>
+    <div onclick="document.getElementById('weekly-backup-banner').remove()"
+      style="color:var(--t3);cursor:pointer;padding:4px 2px;font-size:18px;
+      line-height:1;margin-left:2px;flex-shrink:0;">×</div>
   `;
   document.body.appendChild(el);
-  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .4s';setTimeout(()=>el.remove(),400);},6000);
+
+  // Auto-dismiss after 12 seconds if ignored
+  setTimeout(()=>{
+    const b=document.getElementById('weekly-backup-banner');
+    if(b){b.style.opacity='0';b.style.transition='opacity .4s';setTimeout(()=>b.remove(),400);}
+  },12000);
+}
+
+async function doWeeklyBackupSave(btn){
+  btn.textContent='Saving…';
+  btn.disabled=true;
+  await exportBackup(true);
+  const b=document.getElementById('weekly-backup-banner');
+  if(b){
+    b.innerHTML=`
+      <div style="width:7px;height:7px;border-radius:50%;background:#6abf69;flex-shrink:0;"></div>
+      <div style="color:var(--t2);font-size:12px;">Backup saved to Downloads ✓</div>
+      <div onclick="this.parentElement.remove()" style="color:var(--t3);cursor:pointer;padding:4px;font-size:18px;margin-left:8px;">×</div>
+    `;
+    setTimeout(()=>{b.style.opacity='0';b.style.transition='opacity .5s';setTimeout(()=>b.remove(),500);},3000);
+  }
 }
 async function clearAllData(){
   if(!confirm('Delete ALL notes and folders? Cannot be undone.'))return;
