@@ -60,26 +60,28 @@ html,body{
 
 /* Side nav */
 #home-nav{
-  width:220px;flex-shrink:0;
-  background:var(--s1);
+  width:240px;flex-shrink:0;
+  background:linear-gradient(180deg,var(--s1) 0%,rgba(11,11,14,0.98) 100%);
   border-right:1px solid var(--b1);
   display:flex;flex-direction:column;
   padding:0;overflow:hidden;
 }
 .nav-brand{
-  padding:calc(20px + env(safe-area-inset-top)) 20px 20px;
+  padding:calc(24px + env(safe-area-inset-top)) 22px 22px;
   border-bottom:1px solid var(--b1);
   flex-shrink:0;
+  background:linear-gradient(180deg,rgba(200,169,110,0.06) 0%,transparent 100%);
 }
 .nav-brand-name{
   font-family:'Playfair Display',serif;
-  font-size:22px;font-weight:400;
-  color:var(--gold);letter-spacing:.02em;
+  font-size:26px;font-weight:400;
+  color:var(--gold);letter-spacing:.03em;
+  text-shadow:0 0 40px rgba(200,169,110,0.3);
 }
 .nav-brand-sub{
-  font-size:10px;letter-spacing:.12em;
-  color:var(--t3);font-family:'JetBrains Mono',monospace;
-  text-transform:uppercase;margin-top:3px;
+  font-size:9px;letter-spacing:.18em;
+  color:var(--t4);font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase;margin-top:5px;
 }
 .nav-section{padding:16px 12px 4px;}
 .nav-section-label{
@@ -122,29 +124,36 @@ html,body{
   width:100%;
 }
 .nav-action-btn:hover{background:var(--s2);color:var(--t1);}
-.nav-action-btn.primary{background:var(--gold);color:#0b0b0e;border-color:transparent;font-weight:500;}
-.nav-action-btn.primary:hover{background:var(--gold2);}
+.nav-action-btn.primary{background:var(--gold);color:#0b0b0e;border-color:transparent;font-weight:600;
+  box-shadow:0 4px 20px rgba(200,169,110,0.3);}
+.nav-action-btn.primary:hover{background:var(--gold2);box-shadow:0 6px 28px rgba(200,169,110,0.45);}
 .nav-action-btn svg{width:14px;height:14px;flex-shrink:0;}
 
 /* Main content */
 #home-main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
 #home-topbar{
   display:flex;align-items:center;justify-content:space-between;
-  padding:calc(14px + env(safe-area-inset-top)) 24px 14px;
+  padding:calc(16px + env(safe-area-inset-top)) 28px 16px;
   border-bottom:1px solid var(--b1);
   flex-shrink:0;
   background:var(--bg);
+  backdrop-filter:blur(10px);
 }
 #home-search{
   display:flex;align-items:center;gap:10px;
   background:var(--s2);border:1px solid var(--b2);
-  border-radius:var(--rs);padding:8px 14px;
-  flex:1;max-width:320px;
+  border-radius:20px;padding:9px 16px;
+  flex:1;max-width:400px;
+  transition:border-color .2s,box-shadow .2s;
+}
+#home-search:focus-within{
+  border-color:rgba(200,169,110,0.4);
+  box-shadow:0 0 0 3px rgba(200,169,110,0.08);
 }
 #home-search svg{width:14px;height:14px;color:var(--t3);flex-shrink:0;}
 #home-search input{
   background:none;border:none;outline:none;
-  color:var(--t1);font-size:13px;font-family:'Inter',sans-serif;
+  color:var(--t1);font-size:14px;font-family:'Inter',sans-serif;
   width:100%;
 }
 #home-search input::placeholder{color:var(--t3);}
@@ -158,24 +167,30 @@ html,body{
 .topbar-icon-btn:hover{background:var(--s3);color:var(--t1);border-color:var(--b3);}
 .topbar-icon-btn svg{width:16px;height:16px;}
 
-#home-content{flex:1;overflow-y:auto;padding:24px;}
+#home-content{flex:1;overflow-y:auto;padding:28px 28px 40px;}
 #home-content::-webkit-scrollbar{width:3px;}
 #home-content::-webkit-scrollbar-thumb{background:var(--s4);border-radius:2px;}
 
-.content-section{margin-bottom:32px;}
-.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.content-section{margin-bottom:40px;}
+.section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:10px;border-bottom:1px solid var(--b1);}
 .section-title{
   font-family:'Playfair Display',serif;
-  font-size:17px;font-weight:400;color:var(--t1);
+  font-size:20px;font-weight:400;color:var(--t1);
+  letter-spacing:.01em;
 }
-.section-count{font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
+.section-count{
+  font-size:10px;color:var(--t4);font-family:'JetBrains Mono',monospace;
+  background:var(--s2);border:1px solid var(--b1);
+  padding:2px 8px;border-radius:10px;
+}
 
 /* Folder cards */
-.folders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;}
+.folders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
 .folder-card{
-  background:var(--s2);border:1px solid var(--b1);
-  border-radius:var(--r);padding:18px 16px 14px;
-  cursor:pointer;transition:all .2s;
+  background:linear-gradient(145deg,var(--s2),var(--s1));
+  border:1px solid var(--b1);
+  border-radius:14px;padding:20px 18px 16px;
+  cursor:pointer;transition:all .22s cubic-bezier(.34,1.2,.64,1);
   display:flex;flex-direction:column;gap:10px;
   position:relative;overflow:hidden;
 }
@@ -184,15 +199,18 @@ html,body{
   background:linear-gradient(135deg,rgba(255,255,255,.02) 0%,transparent 60%);
   pointer-events:none;
 }
-.folder-card:hover{border-color:var(--b2);transform:translateY(-2px);
-  box-shadow:0 8px 32px rgba(0,0,0,.5);}
+.folder-card:hover{
+  border-color:rgba(200,169,110,0.3);
+  transform:translateY(-4px);
+  box-shadow:0 12px 40px rgba(0,0,0,.6),0 0 0 1px rgba(200,169,110,0.08);
+}
 .folder-card:active{transform:translateY(0);}
-.folder-emoji{font-size:24px;line-height:1;}
-.folder-name{font-size:13px;font-weight:500;color:var(--t1);}
-.folder-count{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;}
+.folder-emoji{font-size:28px;line-height:1;margin-bottom:2px;}
+.folder-name{font-size:14px;font-weight:500;color:var(--t1);letter-spacing:.01em;}
+.folder-count{font-size:9px;color:var(--t4);font-family:'JetBrains Mono',monospace;letter-spacing:.06em;}
 
 /* Note cards */
-.notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
+.notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(175px,1fr));gap:18px;}
 .note-card{
   background:var(--s1);border:1px solid var(--b1);
   border-radius:14px;overflow:hidden;
@@ -227,13 +245,13 @@ html,body{
 .note-card:hover .note-cover-bg{filter:brightness(1.1);}
 .note-cover-label{
   position:absolute;bottom:0;left:0;right:0;z-index:5;
-  padding:20px 14px 12px 22px;
-  background:linear-gradient(transparent,rgba(0,0,0,.6));
+  padding:28px 14px 14px 22px;
+  background:linear-gradient(transparent,rgba(0,0,0,.75) 60%,rgba(0,0,0,.85));
 }
 .note-cover-title{
-  font-family:'Playfair Display',serif;font-size:13px;font-weight:400;
-  color:rgba(255,255,255,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  letter-spacing:.02em;text-shadow:0 1px 6px rgba(0,0,0,.6);
+  font-family:'Playfair Display',serif;font-size:14px;font-weight:400;
+  color:rgba(255,255,255,.95);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:.03em;text-shadow:0 2px 8px rgba(0,0,0,.8);
 }
 .note-cover-sub{font-size:9px;color:rgba(255,255,255,.4);font-family:'JetBrains Mono',monospace;margin-top:3px;}
 /* Paper edge effect */
@@ -258,10 +276,10 @@ html,body{
 .cv-obsidian .note-cover-bg{background:linear-gradient(155deg,#1a1a24,#101014,#08080c);}
 .cv-amber .note-cover-bg{background:linear-gradient(155deg,#7a5218,#523810,#382808);}
 
-.note-info{padding:9px 12px 11px;}
-.note-title{font-size:12px;font-weight:500;color:var(--t1);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.note-meta{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
+.note-info{padding:11px 14px 13px;}
+.note-title{font-size:13px;font-weight:500;color:var(--t1);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.01em;}
+.note-meta{font-size:9px;color:var(--t4);font-family:'JetBrains Mono',monospace;margin-top:3px;letter-spacing:.04em;}
 .note-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
 .note-tag-chip{
   font-size:9px;padding:2px 7px;border-radius:10px;
@@ -443,6 +461,17 @@ html,body{
 .rtip{display:none;}
 
 /* eraser picker */
+.ctx-item{
+  display:flex;align-items:center;gap:10px;
+  width:100%;padding:10px 12px;border-radius:8px;
+  border:none;background:transparent;
+  color:var(--t1);font-size:14px;font-family:'Inter',sans-serif;
+  cursor:pointer;transition:background .12s;text-align:left;
+}
+.ctx-item:hover{background:var(--s3);}
+.ctx-item.danger{color:#ff5555;}
+.ctx-item.danger:hover{background:rgba(255,85,85,0.12);}
+.ctx-item svg{flex-shrink:0;opacity:.7;}
 .eraser-pick-btn{
   display:flex;align-items:center;gap:8px;
   width:100%;padding:8px 10px;border-radius:7px;
@@ -893,6 +922,11 @@ html,body{
       </div>
     </div>
     <div id="home-content">
+      <!-- Greeting -->
+      <div id="home-greeting" style="margin-bottom:32px;">
+        <div style="font-family:'Playfair Display',serif;font-size:28px;font-weight:400;color:var(--t1);letter-spacing:.01em;" id="greeting-text">Good morning</div>
+        <div style="font-size:11px;color:var(--t4);font-family:'JetBrains Mono',monospace;margin-top:6px;letter-spacing:.08em;" id="greeting-date"></div>
+      </div>
       <div class="content-section" id="folders-section">
         <div class="section-hdr">
           <div class="section-title">Folders</div>
@@ -1203,6 +1237,14 @@ html,body{
   </div>
 </div>
 
+<!-- Long-press context menu -->
+<div id="ctx-menu" style="display:none;position:fixed;z-index:900;background:var(--s2);border:1px solid var(--b2);border-radius:12px;padding:6px;box-shadow:0 16px 48px rgba(0,0,0,.8);min-width:180px;animation:fadeUp .15s ease;">
+  <div id="ctx-title" style="font-size:10px;letter-spacing:.1em;color:var(--t4);font-family:'JetBrains Mono',monospace;text-transform:uppercase;padding:6px 12px 8px;border-bottom:1px solid var(--b1);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:200px;"></div>
+  <div id="ctx-items"></div>
+</div>
+<!-- Dim backdrop for context menu -->
+<div id="ctx-backdrop" onclick="closeCtxMenu()" style="display:none;position:fixed;inset:0;z-index:899;background:rgba(0,0,0,0.3);"></div>
+
 <!-- Toasts -->
 <div class="toast" id="palm-toast">⊗ Palm rejected</div>
 <div class="toast" id="mode-toast"></div>
@@ -1410,7 +1452,174 @@ function setNavView(view,el){
 }
 
 function renderHome(){
+  updateGreeting();
   renderFolders();renderNotes();
+}
+
+function updateGreeting(){
+  const h=new Date().getHours();
+  const greet=h<12?'Good morning':h<17?'Good afternoon':'Good evening';
+  const el=document.getElementById('greeting-text');
+  const dateEl=document.getElementById('greeting-date');
+  if(el)el.textContent=greet;
+  if(dateEl){
+    const d=new Date();
+    dateEl.textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'}).toUpperCase();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// LONG-PRESS CONTEXT MENU
+// ═══════════════════════════════════════════════════════════════
+let ctxLongPressTimer=null;
+const CTX_LONG_PRESS_MS=600;
+
+function attachLongPress(el, onLongPress){
+  let cancelled=false;
+  const start=e=>{
+    cancelled=false;
+    ctxLongPressTimer=setTimeout(()=>{
+      if(!cancelled){
+        triggerHaptic('medium');
+        onLongPress(e);
+      }
+    },CTX_LONG_PRESS_MS);
+  };
+  const cancel=()=>{cancelled=true;clearTimeout(ctxLongPressTimer);};
+  el.addEventListener('touchstart',start,{passive:true});
+  el.addEventListener('touchend',cancel,{passive:true});
+  el.addEventListener('touchmove',cancel,{passive:true});
+  el.addEventListener('contextmenu',e=>{e.preventDefault();onLongPress(e);});
+}
+
+function showCtxMenu(x,y,title,items){
+  const menu=document.getElementById('ctx-menu');
+  const backdrop=document.getElementById('ctx-backdrop');
+  document.getElementById('ctx-title').textContent=title;
+  const itemsEl=document.getElementById('ctx-items');
+  itemsEl.innerHTML='';
+  items.forEach(item=>{
+    const btn=document.createElement('button');
+    btn.className='ctx-item'+(item.danger?' danger':'');
+    btn.innerHTML=`${item.icon}<span>${item.label}</span>`;
+    btn.onclick=()=>{closeCtxMenu();item.action();};
+    itemsEl.appendChild(btn);
+  });
+  // Position menu — keep on screen
+  menu.style.display='block';
+  backdrop.style.display='block';
+  const vw=window.innerWidth,vh=window.innerHeight;
+  const mw=menu.offsetWidth||200,mh=menu.offsetHeight||200;
+  menu.style.left=Math.min(x,vw-mw-12)+'px';
+  menu.style.top=Math.min(y,vh-mh-12)+'px';
+}
+
+function closeCtxMenu(){
+  document.getElementById('ctx-menu').style.display='none';
+  document.getElementById('ctx-backdrop').style.display='none';
+}
+
+// ── Folder context menu ──
+function showFolderCtx(e,f){
+  const x=e.touches?e.touches[0].clientX:e.clientX;
+  const y=e.touches?e.touches[0].clientY:e.clientY;
+  showCtxMenu(x,y,`📁 ${f.name}`,[
+    {
+      label:'Rename',
+      icon:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+      action:()=>renameFolder(f)
+    },
+    {
+      label:'Delete Folder',
+      icon:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+      danger:true,
+      action:()=>deleteFolder(f)
+    },
+  ]);
+}
+
+// ── Note context menu ──
+function showNoteCtx(e,n){
+  const x=e.touches?e.touches[0].clientX:e.clientX;
+  const y=e.touches?e.touches[0].clientY:e.clientY;
+  const items=[
+    {
+      label:'Rename',
+      icon:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+      action:()=>renameNote(n)
+    },
+    {
+      label:'Duplicate',
+      icon:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+      action:()=>duplicateNote(n)
+    },
+    {
+      label:'Move to Folder',
+      icon:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>',
+      action:()=>moveNoteToFolder(n)
+    },
+    {
+      label:'Delete Note',
+      icon:'<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>',
+      danger:true,
+      action:()=>deleteNote(n)
+    },
+  ];
+  showCtxMenu(x,y,n.title,items);
+}
+
+// ── Actions ──
+function renameFolder(f){
+  const name=prompt('Rename folder:',f.name);
+  if(!name||!name.trim())return;
+  f.name=name.trim();
+  saveMeta();renderHome();
+}
+
+function deleteFolder(f){
+  if(!confirm(`Delete folder "${f.name}"?\nNotes inside will move to All Notes.`))return;
+  app.notes.forEach(n=>{if(n.folderId===f.id)n.folderId=null;});
+  app.folders=app.folders.filter(x=>x.id!==f.id);
+  if(app.activeFolder?.id===f.id){app.activeFolder=null;currentView='all';}
+  saveMeta();renderHome();
+}
+
+function renameNote(n){
+  const name=prompt('Rename note:',n.title);
+  if(!name||!name.trim())return;
+  n.title=name.trim();n.updated=Date.now();
+  saveMeta();renderHome();
+}
+
+function deleteNote(n){
+  if(!confirm(`Delete "${n.title}"? This cannot be undone.`))return;
+  app.notes=app.notes.filter(x=>x.id!==n.id);
+  // Remove all strokes from IndexedDB
+  for(let p=0;p<(n.pageCount||1);p++){
+    idbDel&&idbDel(`strokes_${n.id}_${p}`);
+  }
+  saveMeta();renderHome();
+}
+
+function duplicateNote(n){
+  const copy={...n,id:'n'+Date.now(),title:n.title+' (copy)',created:Date.now(),updated:Date.now()};
+  app.notes.unshift(copy);
+  saveMeta();renderHome();
+  showToast('mode-toast','Note duplicated');
+}
+
+function moveNoteToFolder(n){
+  if(!app.folders.length){alert('No folders yet. Create a folder first.');return;}
+  const opts=app.folders.map((f,i)=>`${i+1}. ${f.icon} ${f.name}`).join('\n');
+  const choice=prompt(`Move "${n.title}" to:\n${opts}\n\n0. No folder (All Notes)`);
+  if(choice===null)return;
+  const idx=parseInt(choice)-1;
+  if(choice==='0'){n.folderId=null;}
+  else if(idx>=0&&idx<app.folders.length){n.folderId=app.folders[idx].id;}
+  else return;
+  n.updated=Date.now();
+  saveMeta();renderHome();
+  showToast('mode-toast','Note moved');
 }
 
 function renderFolders(){
@@ -1427,6 +1636,7 @@ function renderFolders(){
     card.className='folder-card';
     card.innerHTML=`<div class="folder-emoji">${f.icon}</div><div class="folder-name">${f.name}</div><div class="folder-count">${cnt} note${cnt!==1?'s':''}</div>`;
     card.onclick=()=>{app.activeFolder=f;currentView='folder';document.querySelectorAll('#home-nav .nav-item').forEach(n=>n.classList.remove('active'));renderHome();};
+    attachLongPress(card,e=>showFolderCtx(e,f));
     grid.appendChild(card);
     const ni=document.createElement('div');ni.className='nav-folder-item';
     ni.innerHTML=`<span>${f.icon}</span>${f.name}`;
@@ -1479,6 +1689,7 @@ function getCoverTheme(noteId){
         ${tagsHtml?`<div class="note-tags">${tagsHtml}</div>`:''}
       </div>`;
     card.onclick=()=>openNote(n);
+    attachLongPress(card,e=>showNoteCtx(e,n));
     grid.appendChild(card);
     loadAndDrawThumb(n);
   });
