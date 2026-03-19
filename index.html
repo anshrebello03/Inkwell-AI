@@ -377,14 +377,14 @@ html,body{
   width:var(--rail);min-width:var(--rail);flex-shrink:0;
   background:var(--s1);border-right:1px solid var(--b1);
   display:flex;flex-direction:column;align-items:center;
-  padding:calc(10px + env(safe-area-inset-top)) 0 10px;gap:2px;z-index:20;
-  overflow:hidden;
+  padding:calc(10px + env(safe-area-inset-top)) 0 10px;gap:2px;z-index:200;
+  overflow:visible;
   transition:width .22s cubic-bezier(.4,0,.2,1),
              min-width .22s cubic-bezier(.4,0,.2,1),
              opacity .22s;
 }
-#rail.hidden{width:0!important;min-width:0!important;opacity:0;border:none;}
-.rail-top{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;}
+#rail.hidden{width:0!important;min-width:0!important;opacity:0;border:none;overflow:hidden;}
+.rail-top{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;overflow:visible;}
 .rail-sep{width:28px;height:1px;background:var(--b2);margin:5px 0;flex-shrink:0;}
 
 /* back button styled differently */
@@ -452,6 +452,15 @@ html,body{
 }
 .eraser-pick-btn:hover{background:var(--s3);color:var(--t1);}
 .eraser-pick-btn.active{background:var(--gdim);color:var(--gold);}
+.eraser-level-btn{
+  flex:1;height:28px;border-radius:6px;
+  border:1px solid var(--b2);background:var(--s3);
+  color:var(--t2);cursor:pointer;
+  font-size:12px;font-weight:500;font-family:'JetBrains Mono',monospace;
+  transition:all .15s;
+}
+.eraser-level-btn:hover{background:var(--s4);color:var(--t1);}
+.eraser-level-btn.active{background:var(--gold);color:#0b0b0e;border-color:transparent;}
 
 /* ── CANVAS AREA ── */
 #canvas-area{flex:1;min-width:0;display:flex;flex-direction:column;overflow:hidden;}
@@ -706,10 +715,9 @@ html,body{
   border-radius:50%;
   pointer-events:none;z-index:700;
   display:none;transform:translate(-50%,-50%);
-  /* Translucent white fill like Collab Note / GoodNotes eraser */
-  background:rgba(255,255,255,0.18);
-  border:1.5px solid rgba(255,255,255,0.7);
-  box-shadow:0 0 0 0.5px rgba(0,0,0,0.3),inset 0 0 8px rgba(255,255,255,0.08);
+  background:rgba(255,255,255,0.38);
+  border:2px solid rgba(255,255,255,0.92);
+  box-shadow:0 0 0 1px rgba(0,0,0,0.35),0 2px 8px rgba(0,0,0,0.3);
   transition:width .1s ease,height .1s ease;
 }
 
@@ -936,13 +944,13 @@ html,body{
       </div>
 
       <!-- Eraser with sub-picker -->
-      <div style="position:relative;width:100%;display:flex;justify-content:center;">
-        <button class="rail-btn" id="rb-eraser" onclick="toggleEraserPicker()">
+      <div style="position:relative;width:100%;display:flex;justify-content:center;overflow:visible;">
+        <button class="rail-btn" id="rb-eraser" onclick="toggleEraserPicker(event)">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l13-13 4 4-6.5 6.5"/><path d="M6.5 17.5l4-4"/></svg>
           <span class="rail-label">Eraser</span>
           <span id="eraser-dot" style="position:absolute;bottom:5px;right:5px;width:5px;height:5px;border-radius:50%;background:var(--gold);display:none;"></span>
         </button>
-        <div id="eraser-picker" style="display:none;position:absolute;left:calc(100% + 8px);top:0;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:6px;z-index:400;width:148px;box-shadow:0 12px 32px rgba(0,0,0,.7);">
+        <div id="eraser-picker" onclick="event.stopPropagation()" style="display:none;position:absolute;left:calc(100% + 8px);top:0;background:var(--s2);border:1px solid var(--b2);border-radius:10px;padding:6px;z-index:400;width:148px;box-shadow:0 12px 32px rgba(0,0,0,.7);">
           <div style="font-size:9px;letter-spacing:.1em;color:var(--t4);font-family:'JetBrains Mono',monospace;text-transform:uppercase;padding:4px 6px 6px;">Eraser</div>
           <button onclick="selectEraser('se')" id="ep-se" class="eraser-pick-btn active">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 20H7L3 16l13-13 4 4-6.5 6.5"/></svg>Stroke
@@ -950,17 +958,17 @@ html,body{
           <button onclick="selectEraser('pe')" id="ep-pe" class="eraser-pick-btn">
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><path d="M11 3l10 10-7 7-10-10z"/></svg>Pixel
           </button>
-          <!-- Eraser size control -->
+          <!-- Eraser size — 1 to 5 -->
           <div style="height:1px;background:var(--b1);margin:6px 0;"></div>
-          <div style="font-size:9px;letter-spacing:.1em;color:var(--t4);font-family:'JetBrains Mono',monospace;text-transform:uppercase;padding:0 6px 5px;">Size</div>
-          <div style="display:flex;align-items:center;gap:6px;padding:0 6px 4px;">
-            <button onclick="changeEraserSize(-1)" style="width:24px;height:24px;border-radius:6px;border:1px solid var(--b2);background:var(--s3);color:var(--t2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">−</button>
-            <!-- Size preview dot -->
-            <div style="flex:1;display:flex;align-items:center;justify-content:center;">
-              <div id="eraser-size-dot" style="border-radius:50%;background:rgba(255,255,255,.25);border:1.5px solid rgba(255,255,255,.6);transition:all .15s;"></div>
-            </div>
-            <button onclick="changeEraserSize(1)" style="width:24px;height:24px;border-radius:6px;border:1px solid var(--b2);background:var(--s3);color:var(--t2);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">+</button>
+          <div style="font-size:9px;letter-spacing:.1em;color:var(--t4);font-family:'JetBrains Mono',monospace;text-transform:uppercase;padding:0 6px 6px;">Size</div>
+          <div style="display:flex;gap:4px;padding:0 6px 4px;">
+            <button onclick="setEraserLevel(1)" id="esl-1" class="eraser-level-btn active">1</button>
+            <button onclick="setEraserLevel(2)" id="esl-2" class="eraser-level-btn">2</button>
+            <button onclick="setEraserLevel(3)" id="esl-3" class="eraser-level-btn">3</button>
+            <button onclick="setEraserLevel(4)" id="esl-4" class="eraser-level-btn">4</button>
+            <button onclick="setEraserLevel(5)" id="esl-5" class="eraser-level-btn">5</button>
           </div>
+          <div style="font-size:9px;color:var(--t4);font-family:'JetBrains Mono',monospace;padding:2px 6px 4px;" id="eraser-level-desc">Small</div>
         </div>
       </div>
 
@@ -1915,70 +1923,100 @@ function onDown(e,pc){
   restoreToolbar();
   startToolbarFade();
   const{x,y,pageIdx}=getPageAndPos(e,pc);
-  const ay=applyBaselineSnap(y);
   cv.currentPage=pageIdx;
 
   if(cv.tool==='select'){
     const strokes=cv.strokes[pageIdx]||[];
+
+    // 1. Already have selection — check handles first, then interior
+    if(sel.stroke&&sel.pg===pageIdx){
+      const handle=hitTestHandle(x,y);
+      if(handle){
+        sel.resizing=true;sel.resizeHandle=handle;
+        sel.origPoints=sel.stroke.points.map(p=>({...p}));
+        const b=getSelBounds();
+        sel.origBounds={minX:b.minX,maxX:b.maxX,minY:b.minY,maxY:b.maxY};
+        cv.drawing=false;return;
+      }
+      if(hitTestSelInterior(x,y)){
+        sel.dragging=true;
+        sel.dragStartX=x;sel.dragStartY=y;
+        sel.origPoints=sel.stroke.points.map(p=>({...p}));
+        cv.drawing=false;return;
+      }
+    }
+
+    // 2. Tap stroke to select
     let found=null;
     for(let i=strokes.length-1;i>=0;i--){
-      if(hitTestStroke(strokes[i],x,ay)){found=strokes[i];break;}
+      if(hitTestStroke(strokes[i],x,y)){found=strokes[i];break;}
     }
     if(found){
       if(sel.stroke!==found){
+        const prevPg=sel.pg;
         sel.stroke=found;sel.pg=pageIdx;
-        sel.origPoints=found.points.map(p=>({...p}));
+        sel.resizing=false;sel.resizeHandle=null;
+        if(prevPg!==null&&prevPg!==pageIdx)redrawPage(prevPg);
         redrawPage(pageIdx);drawSelectionBox(pageIdx);
       }
-      sel.dragging=true;sel.dragStartX=x;sel.dragStartY=ay;
+      sel.dragging=true;
+      sel.dragStartX=x;sel.dragStartY=y;
+      sel.origPoints=found.points.map(p=>({...p}));
     } else {
       if(sel.stroke){const pg=sel.pg;clearSelection();if(pg!==null)redrawPage(pg);}
     }
-    cv.drawing=false;
-    return;
+    cv.drawing=false;return;
   }
 
   cv.drawing=true;cv.redoStack=[];
 
   if(cv.tool==='pen'){
-    cv.currentStroke={color:cv.color,width:THICK[cv.thick-1],points:[{x,y:ay}],page:pageIdx};
+    cv.currentStroke={color:cv.color,width:THICK[cv.thick-1],points:[{x,y}],page:pageIdx};
   } else if(cv.tool==='hl'){
-    cv.currentStroke={color:hlColor,hlColor:hlColor,hlAlpha:0.38,width:THICK[cv.thick-1],isHighlight:true,points:[{x,y:ay}],page:pageIdx};
+    cv.currentStroke={color:hlColor,hlColor:hlColor,hlAlpha:0.38,width:THICK[cv.thick-1],isHighlight:true,points:[{x,y}],page:pageIdx};
   } else if(cv.tool==='se'){
     const cx2=e.touches?e.touches[0].clientX:e.clientX;
     const cy2=e.touches?e.touches[0].clientY:e.clientY;
     const sz=cv.eraserSize*2*cv.zoom;
     const ec=document.getElementById('eraser-ring');
     ec.style.left=cx2+'px';ec.style.top=cy2+'px';ec.style.width=sz+'px';ec.style.height=sz+'px';ec.style.display='block';
-    eraseStroke({x,y:ay,pageIdx});
+    eraseStroke({x,y,pageIdx});
   } else if(cv.tool==='pe'){
     const cx2=e.touches?e.touches[0].clientX:e.clientX;
     const cy2=e.touches?e.touches[0].clientY:e.clientY;
     const sz=cv.eraserSize*2*cv.zoom;
     const ec=document.getElementById('eraser-ring');
     ec.style.left=cx2+'px';ec.style.top=cy2+'px';ec.style.width=sz+'px';ec.style.height=sz+'px';ec.style.display='block';
-    erasePixel({x,y:ay,pageIdx},pc);
+    erasePixel({x,y,pageIdx},pc);
   }
 }
 
 function onMove(e,pc){
   // Handle select tool drag separately (doesn't need cv.drawing)
-  if(cv.tool==='select'&&sel.dragging&&sel.stroke&&sel.pg!==null){
+  if(cv.tool==='select'&&sel.pg!==null){
     const{x,y}=getPageAndPos(e,pc);
-    const dx=x-sel.dragStartX;
-    const dy=y-sel.dragStartY;
-    // Move all points by delta from original positions
-    sel.stroke.points=sel.origPoints.map(p=>({...p,x:p.x+dx,y:p.y+dy}));
-    redrawPage(sel.pg);
-    drawSelectionBox(sel.pg);
-    e.preventDefault&&e.preventDefault();
-    return;
+
+    if(sel.resizing&&sel.resizeHandle){
+      // Resize: scale points by dragging corner
+      applyResize(x,y);
+      redrawPage(sel.pg);drawSelectionBox(sel.pg);
+      e.preventDefault&&e.preventDefault();
+      return;
+    }
+
+    if(sel.dragging&&sel.stroke){
+      // Move: translate all points
+      const dx=x-sel.dragStartX;
+      const dy=y-sel.dragStartY;
+      sel.stroke.points=sel.origPoints.map(p=>({...p,x:p.x+dx,y:p.y+dy}));
+      redrawPage(sel.pg);drawSelectionBox(sel.pg);
+      e.preventDefault&&e.preventDefault();
+      return;
+    }
   }
 
   if(!cv.drawing)return;
   let{x,y,pageIdx}=getPageAndPos(e,pc);
-
-  y=applyBaselineSnap(y);
 
   // Show eraser ring cursor for both eraser modes
   if(cv.tool==='se'||cv.tool==='pe'){
@@ -2030,8 +2068,8 @@ function onMove(e,pc){
   }
 
   if(cv.tool==='pen'&&cv.currentStroke){
-    const stab=stabilizePoint({x,y});
-    cv.currentStroke.points.push(stab);
+    // Push raw coordinates directly — no stabilizer, no modification
+    cv.currentStroke.points.push({x,y});
     const pts=cv.currentStroke.points;
     const n=pts.length-1;
     if(n>=1){
@@ -2059,11 +2097,13 @@ function onMove(e,pc){
 
 function onUp(e,pc){
   // Handle select tool drag end
-  if(cv.tool==='select'&&sel.dragging){
-    sel.dragging=false;
-    // Save final position as new origPoints for next drag
-    if(sel.stroke)sel.origPoints=sel.stroke.points.map(p=>({...p}));
-    // Mark dirty and keep selection visible
+  if(cv.tool==='select'&&(sel.dragging||sel.resizing)){
+    sel.dragging=false;sel.resizing=false;sel.resizeHandle=null;
+    if(sel.stroke){
+      sel.origPoints=sel.stroke.points.map(p=>({...p}));
+      const b=getSelBounds();
+      if(b)sel.origBounds={...b};
+    }
     if(sel.pg!==null){redrawPage(sel.pg);drawSelectionBox(sel.pg);markDirty(sel.pg);}
     return;
   }
@@ -2614,47 +2654,133 @@ let sel={
   dragging:false,
   dragStartX:0,dragStartY:0,
   origPoints:null, // copy of points before drag
+  // Resize state
+  resizing:false,     // true when dragging a corner handle
+  resizeHandle:null,  // 'tl','tr','bl','br'
+  resizeStartX:0,resizeStartY:0,
+  origBounds:null,    // {minX,maxX,minY,maxY} at start of resize
 };
 
 function clearSelection(){
   if(!sel.stroke)return;
-  sel.stroke=null;sel.pg=null;sel.dragging=false;sel.origPoints=null;
-  // Redraw to remove selection highlight
-  if(sel.pg!==null)redrawPage(sel.pg);
+  const pg=sel.pg;
+  sel.stroke=null;sel.pg=null;sel.dragging=false;sel.resizing=false;
+  sel.origPoints=null;sel.resizeHandle=null;sel.origBounds=null;
+  if(pg!==null)redrawPage(pg);
   document.querySelectorAll('.page-canvas').forEach(pc=>pc.style.outline='');
 }
 
-function drawSelectionBox(pageIdx){
-  // Draw a dashed highlight box around the selected stroke
-  if(!pageDOMs[pageIdx])return;
-  const{ctx}=pageDOMs[pageIdx];
-  if(!sel.stroke)return;
+function getSelBounds(){
+  if(!sel.stroke)return null;
   const pts=sel.stroke.points;
   const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
-  const minX=Math.min(...xs)-8,maxX=Math.max(...xs)+8;
-  const minY=Math.min(...ys)-8,maxY=Math.max(...ys)+8;
+  return{
+    minX:Math.min(...xs),maxX:Math.max(...xs),
+    minY:Math.min(...ys),maxY:Math.max(...ys)
+  };
+}
+
+// Handle size in canvas logical px
+const HANDLE_SIZE=10;
+
+function drawSelectionBox(pageIdx){
+  if(!pageDOMs[pageIdx]||!sel.stroke)return;
+  const{ctx}=pageDOMs[pageIdx];
+  const pts=sel.stroke.points;
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const pad=8;
+  const minX=Math.min(...xs)-pad, maxX=Math.max(...xs)+pad;
+  const minY=Math.min(...ys)-pad, maxY=Math.max(...ys)+pad;
+  const w=maxX-minX, h=maxY-minY;
+
   ctx.save();
-  ctx.strokeStyle='rgba(100,160,255,0.8)';
-  ctx.lineWidth=1.5/cv.zoom;
-  ctx.setLineDash([6/cv.zoom,4/cv.zoom]);
-  ctx.strokeRect(minX,minY,maxX-minX,maxY-minY);
-  // Corner handles
+  // Dashed selection rect
+  ctx.strokeStyle='rgba(80,140,255,0.85)';
+  ctx.lineWidth=1.5;
+  ctx.setLineDash([6,4]);
+  ctx.strokeRect(minX,minY,w,h);
+
+  // Corner handles — filled squares, white with blue border
   ctx.setLineDash([]);
-  ctx.fillStyle='rgba(100,160,255,0.9)';
-  [[minX,minY],[maxX,minY],[maxX,maxY],[minX,maxY]].forEach(([hx,hy])=>{
-    ctx.fillRect(hx-4/cv.zoom,hy-4/cv.zoom,8/cv.zoom,8/cv.zoom);
+  const hs=HANDLE_SIZE;
+  const handles=[
+    {id:'tl',x:minX,y:minY},
+    {id:'tr',x:maxX,y:minY},
+    {id:'br',x:maxX,y:maxY},
+    {id:'bl',x:minX,y:maxY},
+  ];
+  handles.forEach(h=>{
+    ctx.fillStyle='#ffffff';
+    ctx.fillRect(h.x-hs/2,h.y-hs/2,hs,hs);
+    ctx.strokeStyle='rgba(80,140,255,0.9)';
+    ctx.lineWidth=1.5;
+    ctx.strokeRect(h.x-hs/2,h.y-hs/2,hs,hs);
   });
+
+  // Store bounds for hit testing
+  sel._bounds={minX,maxX,minY,maxY};
   ctx.restore();
 }
 
+// Returns handle id ('tl','tr','br','bl') if (x,y) hits a corner handle, else null
+function hitTestHandle(x,y){
+  if(!sel._bounds)return null;
+  const{minX,maxX,minY,maxY}=sel._bounds;
+  const thresh=HANDLE_SIZE*1.2; // slightly larger hit area for fingers
+  const handles={
+    tl:{x:minX,y:minY},
+    tr:{x:maxX,y:minY},
+    br:{x:maxX,y:maxY},
+    bl:{x:minX,y:maxY},
+  };
+  for(const[id,h] of Object.entries(handles)){
+    if(Math.abs(x-h.x)<=thresh&&Math.abs(y-h.y)<=thresh)return id;
+  }
+  return null;
+}
+
+// Hit test interior of selection box (for move)
+function hitTestSelInterior(x,y){
+  if(!sel._bounds)return false;
+  const{minX,maxX,minY,maxY}=sel._bounds;
+  return x>=minX&&x<=maxX&&y>=minY&&y<=maxY;
+}
+
+// Resize: scale all points based on which corner is being dragged
+function applyResize(x,y){
+  if(!sel.origPoints||!sel.origBounds||!sel.resizeHandle)return;
+  const ob=sel.origBounds;
+  const cx=(ob.minX+ob.maxX)/2; // center stays fixed
+  const cy=(ob.minY+ob.maxY)/2;
+
+  // Which corner determines which edge moves
+  const h=sel.resizeHandle;
+  let newMinX=ob.minX,newMaxX=ob.maxX,newMinY=ob.minY,newMaxY=ob.maxY;
+  if(h==='tl'){newMinX=Math.min(x,cx-5);newMinY=Math.min(y,cy-5);}
+  if(h==='tr'){newMaxX=Math.max(x,cx+5);newMinY=Math.min(y,cy-5);}
+  if(h==='br'){newMaxX=Math.max(x,cx+5);newMaxY=Math.max(y,cy+5);}
+  if(h==='bl'){newMinX=Math.min(x,cx-5);newMaxY=Math.max(y,cy+5);}
+
+  const origW=ob.maxX-ob.minX||1;
+  const origH=ob.maxY-ob.minY||1;
+  const newW=newMaxX-newMinX;
+  const newH=newMaxY-newMinY;
+
+  // Scale all points from original positions
+  sel.stroke.points=sel.origPoints.map(p=>({
+    ...p,
+    x:newMinX+(p.x-ob.minX)/origW*newW,
+    y:newMinY+(p.y-ob.minY)/origH*newH,
+  }));
+}
+
 function hitTestStroke(stroke,x,y){
-  // Check if point (x,y) hits any segment of the stroke
-  const thresh=Math.max(12,(stroke.width||2)*3);
+  const thresh=Math.max(14,(stroke.width||2)*3);
   const pts=stroke.points;
   for(let i=0;i<pts.length-1;i++){
     if(pointToSegmentDist(x,y,pts[i].x,pts[i].y,pts[i+1].x,pts[i+1].y)<thresh)return true;
   }
-  // Also check bounding box for shapes
+  // Bounding box check for shapes
   if(stroke.isShape){
     const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
     const minX=Math.min(...xs)-thresh,maxX=Math.max(...xs)+thresh;
@@ -2880,10 +3006,15 @@ function updateRailColor(){
 }
 
 // eraser picker
-function toggleEraserPicker(){
+function toggleEraserPicker(e){
+  if(e)e.stopPropagation();
   const p=document.getElementById('eraser-picker');
   if(p.style.display==='block'){closeEraserPicker();}
-  else{p.style.display='block';selectEraser(eraserMode);}
+  else{
+    p.style.display='block';
+    selectEraser(eraserMode);
+    setEraserLevel(eraserLevel);
+  }
 }
 function closeEraserPicker(){document.getElementById('eraser-picker').style.display='none';}
 function selectEraser(mode){
@@ -2891,27 +3022,32 @@ function selectEraser(mode){
   document.getElementById('ep-se').classList.toggle('active',mode==='se');
   document.getElementById('ep-pe').classList.toggle('active',mode==='pe');
   document.getElementById('eraser-dot').style.display='block';
-  updateEraserSizeDot();
-  setTimeout(closeEraserPicker,280);
+  // Don't close picker — user may want to also change size
 }
 
-// Eraser size: 8 steps from small to large
-const ERASER_SIZES=[8,14,20,28,38,52,68,90];
-let eraserSizeIdx=2; // default: 20px
+// Eraser size levels 1-5
+// Level 5 radius = half the A4 page width → covers full page in 1-2 swipes
+const ERASER_LEVELS=[
+  {radius:10,  label:'Small'},
+  {radius:22,  label:'Medium'},
+  {radius:44,  label:'Large'},
+  {radius:80,  label:'X-Large'},
+  {radius:420, label:'Full page'},
+];
+let eraserLevel=1; // default level 1 (1-indexed)
 
-function changeEraserSize(dir){
-  eraserSizeIdx=Math.max(0,Math.min(ERASER_SIZES.length-1,eraserSizeIdx+dir));
-  cv.eraserSize=ERASER_SIZES[eraserSizeIdx];
-  updateEraserSizeDot();
+function setEraserLevel(level){
+  eraserLevel=level;
+  cv.eraserSize=ERASER_LEVELS[level-1].radius;
+  // Update button active states
+  for(let i=1;i<=5;i++){
+    const btn=document.getElementById('esl-'+i);
+    if(btn)btn.classList.toggle('active',i===level);
+  }
+  // Update description
+  const desc=document.getElementById('eraser-level-desc');
+  if(desc)desc.textContent=ERASER_LEVELS[level-1].label+(level===5?' — erases full page':'');
   triggerHaptic('light');
-}
-
-function updateEraserSizeDot(){
-  const dot=document.getElementById('eraser-size-dot');
-  if(!dot)return;
-  const sz=Math.min(32,cv.eraserSize*0.8);
-  dot.style.width=sz+'px';
-  dot.style.height=sz+'px';
 }
 document.addEventListener('click',e=>{
   const p=document.getElementById('eraser-picker');
