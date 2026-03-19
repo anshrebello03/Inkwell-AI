@@ -730,43 +730,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   opacity:1;
 }
 
-/* Writing zone mode */
-#writing-zone-overlay{
-  position:fixed;inset:0;pointer-events:none;z-index:155;display:none;
-}
-/* Dimmed top region */
-#wz-dim-top{
-  position:absolute;top:52px;left:0;right:0;
-  background:rgba(11,11,14,.6);
-  pointer-events:none;
-  transition:height .25s cubic-bezier(.4,0,.2,1);
-}
-/* Writing strip */
-#wz-strip{
-  position:absolute;left:0;right:0;height:180px;
-  border-top:1px solid rgba(200,169,110,.3);
-  border-bottom:1px solid rgba(200,169,110,.3);
-  background:rgba(200,169,110,.03);
-  pointer-events:none;
-  transition:top .25s cubic-bezier(.4,0,.2,1);
-}
-/* Exit button */
-#wz-exit{
-  position:fixed;top:58px;right:108px;z-index:180;
-  background:var(--gdim);border:1px solid var(--gold);
-  color:var(--gold);border-radius:20px;
-  padding:5px 14px;font-size:11px;
-  font-family:'JetBrains Mono',monospace;
-  cursor:pointer;display:none;letter-spacing:.06em;
-  animation:fadeUp .2s ease;
-}
-/* Writing zone label */
-#wz-label{
-  position:fixed;z-index:180;
-  right:108px;font-size:10px;
-  font-family:'JetBrains Mono',monospace;color:rgba(200,169,110,.5);
-  letter-spacing:.08em;display:none;pointer-events:none;
-}
+/* writing zone removed */
 
 /* wrist guard */
 #wrist-guard{
@@ -1205,13 +1169,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <!-- Live stroke overlay — above ruler, shows line forming in real time -->
 <canvas id="live-stroke-canvas"></canvas>
 
-<!-- Writing zone overlay -->
-<div id="writing-zone-overlay">
-  <div id="wz-dim-top"></div>
-  <div id="wz-strip"></div>
-</div>
-<button id="wz-exit" onclick="exitWritingZone()">✕ Writing Zone</button>
-<div id="wz-label">WRITING ZONE</div>
+
 
 <!-- Toasts -->
 <div class="toast" id="palm-toast">⊗ Palm rejected</div>
@@ -1504,7 +1462,23 @@ async function loadAndDrawThumb(note){
   const strokes=await loadPageStrokes(note.id,0);
   if(!strokes.length)return;
   const sx=160/A4W,sy=213/A4H;
-  strokes.forEach(s=>drawStrokeThumb(tc,s,sx,sy,0));
+  strokes.filter(s=>!s.isHighlight).forEach(s=>{
+    if(!s.points||s.points.length<2)return;
+    tc.save();
+    tc.strokeStyle=s.color;
+    tc.lineWidth=Math.max(0.5,(s.width||2)*sx);
+    tc.lineCap='round';tc.lineJoin='round';
+    tc.beginPath();
+    const pts=s.points;
+    tc.moveTo(pts[0].x*sx,pts[0].y*sy);
+    for(let i=1;i<pts.length-1;i++){
+      const mx=(pts[i].x+pts[i+1].x)/2*sx;
+      const my=(pts[i].y+pts[i+1].y)/2*sy;
+      tc.quadraticCurveTo(pts[i].x*sx,pts[i].y*sy,mx,my);
+    }
+    tc.lineTo(pts[pts.length-1].x*sx,pts[pts.length-1].y*sy);
+    tc.stroke();tc.restore();
+  });
 }
 
 function searchNotes(q){
@@ -1897,7 +1871,7 @@ function isWristZone(e){
 
 function attachCanvasEvents(pc){
   pc.addEventListener('mousedown',e=>{
-    if(!handleDoubleTap(e,pc))onDown(e,pc);
+    onDown(e,pc);
   });
   pc.addEventListener('mousemove',e=>onMove(e,pc));
   pc.addEventListener('mouseup',e=>onUp(e,pc));
@@ -1906,7 +1880,7 @@ function attachCanvasEvents(pc){
     if(isPalm(e)){showPalm();return;}
     if(isWristZone(e))return;
     e.preventDefault();
-    if(!handleDoubleTap(e,pc))onDown(e,pc);
+    onDown(e,pc);
   },{passive:false});
   pc.addEventListener('touchmove',e=>{
     if(isPalm(e))return;
@@ -2063,37 +2037,31 @@ function onMove(e,pc){
   }
 
   if((cv.tool==='pen'||cv.tool==='shape')&&cv.currentStroke){
-    const raw={x,y};
-    const stab=stabilizePoint(raw);
+    const stab=stabilizePoint({x,y});
+    cv.currentStroke.points.push(stab);
     const pts=cv.currentStroke.points;
-    const baseW=THICK[cv.thick-1];
-    let segW=baseW;
-    let segAlpha=1.0; // Feature 3: variable opacity
-    if(pts.length>0){
-      const last=pts[pts.length-1];
-      const dx=stab.x-last.x,dy=stab.y-last.y;
-      const vel=Math.sqrt(dx*dx+dy*dy);
-      const velFactor=Math.max(0.38,Math.min(1.32,1.3-vel/32));
-      segW=baseW*velFactor;
-      // Variable opacity: fast strokes slightly transparent (like running pen)
-      // vel 0=fully opaque, vel 30+=15% transparent
-      segAlpha=Math.max(0.82,Math.min(1.0,1.0-vel/200));
-    }
-    cv.currentStroke.points.push({...stab,w:segW,a:segAlpha});
-    if(pts.length>=2){
-      drawIncrementalSegment(cv.offscreens[pageIdx].ctx,cv.currentStroke,pts.length-1);
+    const n=pts.length-1;
+    if(n>=1){
+      const oc=cv.offscreens[pageIdx].ctx;
+      oc.save();
+      oc.strokeStyle=cv.currentStroke.color;
+      oc.lineWidth=cv.currentStroke.width;
+      oc.lineCap='round';oc.lineJoin='round';
+      oc.beginPath();
+      if(n>=2){
+        const mx1=(pts[n-2].x+pts[n-1].x)/2, my1=(pts[n-2].y+pts[n-1].y)/2;
+        const mx2=(pts[n-1].x+pts[n].x)/2,   my2=(pts[n-1].y+pts[n].y)/2;
+        oc.moveTo(mx1,my1);
+        oc.quadraticCurveTo(pts[n-1].x,pts[n-1].y,mx2,my2);
+      } else {
+        oc.moveTo(pts[0].x,pts[0].y);
+        oc.lineTo(pts[1].x,pts[1].y);
+      }
+      oc.stroke();
+      oc.restore();
     }
     blitPage(pageIdx);
-    // Feature 1: Draw live preview above ruler when ruler is active
-    if(liveActive){
-      drawLiveStrokeOverlay(cv.currentStroke,pc);
-    }
-    // Writing zone: check if need to auto-advance
-    if(wzActive){
-      const cx2=e.touches?e.touches[0].clientX:e.clientX;
-      const cy2=e.touches?e.touches[0].clientY:e.clientY;
-      checkWritingZoneAdvance(cx2,cy2);
-    }
+    if(liveActive) drawLiveStrokeOverlay(cv.currentStroke,pc);
     checkAutoScroll({x,y});
   } else if(cv.tool==='se'){
     eraseStroke({x,y,pageIdx});
@@ -2112,9 +2080,6 @@ function onUp(e,pc){
   if(isInkTool&&cv.currentStroke&&cv.currentStroke.points.length>1){
     const pg=cv.currentStroke.page;
 
-    if(!cv.currentStroke.isHighlight){
-      applyTaper(cv.currentStroke);
-    }
     cv.currentStroke.points=decimatePoints(cv.currentStroke.points);
 
     cv.strokes[pg].push(cv.currentStroke);
@@ -2141,170 +2106,35 @@ function onUp(e,pc){
 // ██████  PREMIUM INK RENDERING ENGINE
 // ═══════════════════════════════════════════════════════════════
 
-// ── Taper: thin start and end of stroke like a real pen lifting ──
-function applyTaper(stroke){
-  const pts=stroke.points;
-  const n=pts.length;
-  if(n<4)return;
 
-  const taperLen=Math.min(Math.floor(n*0.18),12); // taper 18% of stroke, max 12 points
-  const baseW=stroke.width;
 
-  for(let i=0;i<taperLen;i++){
-    // start taper: 0.08 → 1.0
-    const t=i/taperLen;
-    const ease=t*t*(3-2*t); // smoothstep
-    pts[i].w=(pts[i].w||baseW)*Math.max(0.08,ease);
-  }
-  for(let i=0;i<taperLen;i++){
-    // end taper: 1.0 → 0.08
-    const idx=n-1-i;
-    const t=i/taperLen;
-    const ease=t*t*(3-2*t);
-    pts[idx].w=(pts[idx].w||baseW)*Math.max(0.08,ease);
-  }
-}
 
-// ── Incremental premium segment — drawn during live stroke ──
-function drawIncrementalSegment(ctx,stroke,idx){
-  const pts=stroke.points;
-  if(idx<1)return;
 
-  const p0=pts[idx-1];
-  const p1=pts[idx];
-  const w0=(p0.w||stroke.width)/2;
-  const w1=(p1.w||stroke.width)/2;
-  // Variable opacity: interpolate between segment alphas
-  const a0=p0.a!==undefined?p0.a:1;
-  const a1=p1.a!==undefined?p1.a:1;
-
-  ctx.save();
-  ctx.fillStyle=stroke.color;
-
-  const steps=Math.max(2,Math.ceil(Math.hypot(p1.x-p0.x,p1.y-p0.y)/1.5));
-  for(let s=0;s<=steps;s++){
-    const t=s/steps;
-    const x=p0.x+(p1.x-p0.x)*t;
-    const y=p0.y+(p1.y-p0.y)*t;
-    const r=w0+(w1-w0)*t;
-    const alpha=a0+(a1-a0)*t;
-    ctx.globalAlpha=alpha;
-    ctx.beginPath();
-    ctx.arc(x,y,Math.max(0.4,r),0,Math.PI*2);
-    ctx.fill();
-  }
-
-  ctx.restore();
-}
-
-// ── Full premium stroke redraw — used when rendering saved strokes ──
-// Uses Catmull-Rom spline through all points with variable width
+// ── Stroke redraw — smooth quadratic bezier, uniform width, crisp ──
 function drawStrokeCtx(c,stroke,yOffset){
   if(!stroke.points||stroke.points.length<2)return;
   const pts=stroke.points;
-  const n=pts.length;
-  const baseW=stroke.width;
-
-  c.save();
-  c.fillStyle=stroke.color;
-
-  if(n===2){
-    // Single segment — just a capsule
-    const p0=pts[0],p1=pts[1];
-    const w=(baseW/2);
-    drawCapsule(c,p0.x,p0.y-yOffset,p1.x,p1.y-yOffset,w,w);
-  } else {
-    // Catmull-Rom: draw smooth variable-width stroke
-    // Generate interpolated points along the spline
-    const splinePts=catmullRomPoints(pts,yOffset);
-    // Draw as series of filled circles for smooth variable-width
-    for(let i=0;i<splinePts.length;i++){
-      const sp=splinePts[i];
-      const r=Math.max(0.5,(sp.w||baseW)/2);
-      c.beginPath();
-      c.arc(sp.x,sp.y,r,0,Math.PI*2);
-      c.fill();
-    }
-  }
-
-  c.restore();
-}
-
-// ── Catmull-Rom spline interpolation ──
-function catmullRomPoints(pts,yOffset){
-  const result=[];
-  const n=pts.length;
-  const steps=6; // points per segment — higher = smoother, slower
-
-  for(let i=0;i<n-1;i++){
-    const p0=pts[Math.max(0,i-1)];
-    const p1=pts[i];
-    const p2=pts[i+1];
-    const p3=pts[Math.min(n-1,i+2)];
-
-    for(let s=0;s<steps;s++){
-      const t=s/steps;
-      const t2=t*t,t3=t2*t;
-
-      // Catmull-Rom formula
-      const x=0.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3);
-      const y=0.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3);
-
-      // Interpolate width
-      const w0=p1.w||pts[0].width||8;
-      const w1=p2.w||pts[0].width||8;
-      const w=w0+(w1-w0)*t;
-
-      result.push({x,y:y-yOffset,w});
-    }
-  }
-  // Add last point
-  const last=pts[n-1];
-  result.push({x:last.x,y:last.y-yOffset,w:last.w||0.5});
-  return result;
-}
-
-// ── Draw a tapered capsule between two points ──
-function drawCapsule(ctx,x0,y0,x1,y1,r0,r1){
-  const angle=Math.atan2(y1-y0,x1-x0);
-  const sin=Math.sin(angle),cos=Math.cos(angle);
-
-  ctx.beginPath();
-  // Start circle
-  ctx.arc(x0,y0,r0,0,Math.PI*2);
-  ctx.fill();
-  // End circle
-  ctx.arc(x1,y1,r1,0,Math.PI*2);
-  ctx.fill();
-  // Connecting trapezoid
-  ctx.beginPath();
-  ctx.moveTo(x0-r0*sin,y0+r0*cos);
-  ctx.lineTo(x1-r1*sin,y1+r1*cos);
-  ctx.lineTo(x1+r1*sin,y1-r1*cos);
-  ctx.lineTo(x0+r0*sin,y0-r0*cos);
-  ctx.closePath();
-  ctx.fill();
-}
-
-// ── Thumbnail stroke drawing (simplified for speed) ──
-function drawStrokeThumb(c,stroke,scaleX,scaleY,yOffset){
-  if(!stroke.points||stroke.points.length<2)return;
   c.save();
   c.strokeStyle=stroke.color;
-  c.lineWidth=Math.max(0.5,(stroke.width||2)*scaleX);
-  c.lineCap='round';c.lineJoin='round';c.beginPath();
-  const pts=stroke.points;
-  c.moveTo(pts[0].x*scaleX,(pts[0].y-yOffset)*scaleY);
+  c.lineWidth=stroke.width;
+  c.lineCap='round';c.lineJoin='round';
+  c.beginPath();
+  c.moveTo(pts[0].x,pts[0].y-yOffset);
   for(let i=1;i<pts.length-1;i++){
-    const mx=(pts[i].x+pts[i+1].x)/2*scaleX;
-    const my=((pts[i].y+pts[i+1].y)/2-yOffset)*scaleY;
-    c.quadraticCurveTo(pts[i].x*scaleX,(pts[i].y-yOffset)*scaleY,mx,my);
+    const mx=(pts[i].x+pts[i+1].x)/2;
+    const my=(pts[i].y+pts[i+1].y)/2-yOffset;
+    c.quadraticCurveTo(pts[i].x,pts[i].y-yOffset,mx,my);
   }
-  const last=pts[pts.length-1];
-  c.lineTo(last.x*scaleX,(last.y-yOffset)*scaleY);
+  c.lineTo(pts[pts.length-1].x,pts[pts.length-1].y-yOffset);
   c.stroke();
   c.restore();
 }
+
+
+
+
+
+
 
 // ── Erase pixel on specific page ──
 function erasePixel({x,y,pageIdx},pc){
@@ -2836,97 +2666,6 @@ function applyBaselineSnap(y){
   if(Math.abs(y-nearest)<step*.35)return y+(nearest-y)*.4;
   return y;
 }
-// ═══════════════════════════════════════════════════════════════
-// ██████  WRITING ZONE MODE
-// ═══════════════════════════════════════════════════════════════
-let wzActive=false;
-let wzStripTop=0; // Y position of the strip in viewport px
-let wzZoomBefore=1;
-let wzScrollBefore=0;
-let lastTapTime=0;
-let lastTapPage=-1;
-
-// Double-tap on canvas → enter writing zone
-function handleDoubleTap(e,pc){
-  const now=Date.now();
-  const pageIdx=+pc.dataset.page;
-  const timeSinceLast=now-lastTapTime;
-
-  if(timeSinceLast<400&&lastTapPage===pageIdx){
-    // Double tap detected
-    lastTapTime=0;lastTapPage=-1;
-    if(wzActive){exitWritingZone();}
-    else{enterWritingZone(e,pc,pageIdx);}
-    return true;
-  }
-  lastTapTime=now;lastTapPage=pageIdx;
-  return false;
-}
-
-function enterWritingZone(e,pc,pageIdx){
-  wzActive=true;
-  wzZoomBefore=cv.zoom;
-  wzScrollBefore=cScroll.scrollTop;
-
-  // Zoom in to 180% centered on tap position
-  const{y}=getPageAndPos(e,pc);
-  const stripH=180; // height of writing zone strip in screen px at new zoom
-
-  // Set zoom
-  cv.zoom=1.75;
-  applyZoom();
-
-  // Scroll so tapped Y is in the strip area (60% down the screen)
-  const targetScrollY=y*cv.zoom+(pageIdx*(A4H+PAGE_GAP)*cv.zoom)-window.innerHeight*0.55;
-  cScroll.scrollTo({top:Math.max(0,targetScrollY),behavior:'instant'});
-
-  // Show overlay
-  const topbarH=52;
-  const avail=window.innerHeight-topbarH;
-  const stripY=Math.round(avail*0.55)+topbarH; // strip sits at 55% of screen
-  wzStripTop=stripY;
-
-  const overlay=document.getElementById('writing-zone-overlay');
-  const dimTop=document.getElementById('wz-dim-top');
-  const strip=document.getElementById('wz-strip');
-  const exitBtn=document.getElementById('wz-exit');
-  const label=document.getElementById('wz-label');
-
-  dimTop.style.height=(stripY-topbarH)+'px';
-  strip.style.top=(stripY-topbarH)+'px';
-  overlay.style.display='block';
-  exitBtn.style.display='block';
-  exitBtn.style.top=(stripY-36)+'px';
-  label.style.display='block';
-  label.style.top=(stripY+stripH+6)+'px';
-
-  showToast('mode-toast','✎ Writing zone — double-tap to exit');
-}
-
-function exitWritingZone(){
-  wzActive=false;
-  document.getElementById('writing-zone-overlay').style.display='none';
-  document.getElementById('wz-exit').style.display='none';
-  document.getElementById('wz-label').style.display='none';
-  // Restore previous zoom
-  cv.zoom=wzZoomBefore;
-  applyZoom();
-  cScroll.scrollTo({top:wzScrollBefore,behavior:'smooth'});
-}
-
-// Auto-advance writing zone strip as pen nears right edge
-function checkWritingZoneAdvance(screenX,screenY){
-  if(!wzActive)return;
-  // If pen is near the right 15% of screen, scroll right (pan)
-  // Actually for vertical notes we auto-scroll down when near strip bottom
-  const stripBottom=wzStripTop+180;
-  if(screenY>stripBottom-30){
-    cScroll.scrollBy({top:40,behavior:'smooth'});
-    // Update strip position
-    wzStripTop=Math.min(wzStripTop,window.innerHeight*0.7);
-  }
-}
-
 function checkAutoScroll(pos){
   if(!comfort.ascroll)return;
   const pageEl=pageDOMs[cv.currentPage]?.canvas;if(!pageEl)return;
