@@ -1334,9 +1334,7 @@ async function saveMeta(){
 
 // ── Save a single page's strokes ──
 async function savePageStrokes(noteId,pageIdx,strokes){
-  // Point decimation before saving
-  const decimated=strokes.map(s=>({...s,points:decimatePoints(s.points)}));
-  await idbSet(`strokes_${noteId}_${pageIdx}`,decimated);
+  await idbSet(`strokes_${noteId}_${pageIdx}`,strokes);
 }
 
 // ── Load a page's strokes ──
@@ -2116,8 +2114,6 @@ function onUp(e,pc){
   const isInkTool=cv.tool==='pen'||cv.tool==='hl';
   if(isInkTool&&cv.currentStroke&&cv.currentStroke.points.length>1){
     const pg=cv.currentStroke.page;
-
-    cv.currentStroke.points=decimatePoints(cv.currentStroke.points);
 
     cv.strokes[pg].push(cv.currentStroke);
     cv.undoStack.push({type:'add',pg,stroke:cv.currentStroke});
