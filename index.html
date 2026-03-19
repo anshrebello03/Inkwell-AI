@@ -56,7 +56,7 @@ html,body{
 /* ══════════════════════════════════════════════════
    HOME SCREEN — Premium redesign
 ══════════════════════════════════════════════════ */
-#home{background:var(--bg);flex-direction:row;}
+#home{background:var(--bg);flex-direction:row;user-select:none;-webkit-user-select:none;}
 
 /* Side nav */
 #home-nav{
@@ -193,6 +193,8 @@ html,body{
   cursor:pointer;transition:all .22s cubic-bezier(.34,1.2,.64,1);
   display:flex;flex-direction:column;gap:10px;
   position:relative;overflow:hidden;
+  user-select:none;-webkit-user-select:none;
+  -webkit-touch-callout:none;
 }
 .folder-card::after{
   content:'';position:absolute;inset:0;
@@ -217,6 +219,8 @@ html,body{
   cursor:pointer;
   transition:transform .22s cubic-bezier(.34,1.2,.64,1),box-shadow .22s ease,border-color .15s;
   box-shadow:0 2px 10px rgba(0,0,0,.4),2px 3px 0 rgba(0,0,0,.3),4px 5px 0 rgba(0,0,0,.15);
+  user-select:none;-webkit-user-select:none;
+  -webkit-touch-callout:none;
 }
 .note-card:hover{
   border-color:var(--b2);
@@ -1476,8 +1480,11 @@ const CTX_LONG_PRESS_MS=600;
 
 function attachLongPress(el, onLongPress){
   let cancelled=false;
+  let startX=0,startY=0;
   const start=e=>{
     cancelled=false;
+    startX=e.touches?e.touches[0].clientX:e.clientX;
+    startY=e.touches?e.touches[0].clientY:e.clientY;
     ctxLongPressTimer=setTimeout(()=>{
       if(!cancelled){
         triggerHaptic('medium');
@@ -1485,10 +1492,16 @@ function attachLongPress(el, onLongPress){
       }
     },CTX_LONG_PRESS_MS);
   };
+  const move=e=>{
+    if(!e.touches)return;
+    const dx=e.touches[0].clientX-startX;
+    const dy=e.touches[0].clientY-startY;
+    if(Math.sqrt(dx*dx+dy*dy)>8){cancelled=true;clearTimeout(ctxLongPressTimer);}
+  };
   const cancel=()=>{cancelled=true;clearTimeout(ctxLongPressTimer);};
   el.addEventListener('touchstart',start,{passive:true});
+  el.addEventListener('touchmove',move,{passive:true});
   el.addEventListener('touchend',cancel,{passive:true});
-  el.addEventListener('touchmove',cancel,{passive:true});
   el.addEventListener('contextmenu',e=>{e.preventDefault();onLongPress(e);});
 }
 
