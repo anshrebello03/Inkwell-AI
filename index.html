@@ -241,17 +241,27 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .btn-confirm:hover{background:var(--gold2);}
 
 /* ═══════════════════════════════ CANVAS SCREEN ═══════════════════════ */
-#canvas-screen{background:var(--bg);flex-direction:row;}
+#canvas-screen{
+  background:var(--bg);
+  flex-direction:row;
+  width:100vw;
+  height:100vh;
+}
 
 /* Left rail */
 #rail{
-  width:var(--rail);flex-shrink:0;
+  width:var(--rail);
+  min-width:var(--rail);
+  flex-shrink:0;
+  height:100%;
   background:var(--surface);
   border-right:1px solid var(--border);
   display:flex;flex-direction:column;
   align-items:center;padding:16px 0;
   gap:4px;z-index:10;
+  overflow-y:auto;overflow-x:hidden;
 }
+#rail::-webkit-scrollbar{display:none;}
 .rail-btn{
   width:44px;height:44px;border-radius:10px;
   display:flex;align-items:center;justify-content:center;
@@ -290,13 +300,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #rail-color:hover{transform:scale(1.1);border-color:var(--border3);}
 
 /* ── CANVAS AREA ── */
-#canvas-area{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+#canvas-area{
+  flex:1;
+  min-width:0;
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  height:100%;
+}
 #canvas-topbar{
-  height:52px;flex-shrink:0;
+  height:52px;
+  flex-shrink:0;
   background:var(--surface);
   border-bottom:1px solid var(--border);
   display:flex;align-items:center;gap:8px;
   padding:0 16px;
+  z-index:10;
 }
 .topbar-back{
   display:flex;align-items:center;gap:6px;
@@ -325,11 +345,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 }
 .topbar-zoombtn:hover{color:var(--text);border-color:var(--border2);}
 
-#canvas-scroll{flex:1;overflow:auto;position:relative;}
+#canvas-scroll{
+  flex:1;
+  overflow:auto;
+  position:relative;
+  background:var(--bg2);
+  /* center the page horizontally when viewport wider than page */
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+}
 #canvas-scroll::-webkit-scrollbar{width:5px;height:5px;}
 #canvas-scroll::-webkit-scrollbar-thumb{background:var(--surface4);border-radius:3px;}
-#canvas-inner{position:relative;transform-origin:top left;display:inline-block;}
-#drawing-canvas{display:block;touch-action:none;}
+#canvas-inner{
+  position:relative;
+  flex-shrink:0;
+  /* width/height set by applyZoom */
+}
 
 /* page overlays */
 .pg-break{
@@ -350,11 +382,23 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
   border-top:none;letter-spacing:.05em;
 }
 
+#drawing-canvas{
+  display:block;
+  touch-action:none;
+  position:absolute;
+  top:0;left:0;
+}
+
 /* ── RIGHT SIDEBAR ── */
 #snap-sidebar{
-  width:var(--sidebar);flex-shrink:0;
-  background:var(--surface);border-left:1px solid var(--border);
-  display:flex;flex-direction:column;overflow:hidden;
+  width:var(--sidebar);
+  min-width:var(--sidebar);
+  flex-shrink:0;
+  height:100%;
+  background:var(--surface);
+  border-left:1px solid var(--border);
+  display:flex;flex-direction:column;
+  overflow:hidden;
 }
 #snap-header{
   padding:12px 6px 8px;border-bottom:1px solid var(--border);
@@ -1158,15 +1202,36 @@ const PAGE_GAP=24; // visible gap between pages in px
 
 function initCanvas(){
   const pages=cv.strokes.length;
+  // Set actual canvas resolution
   canvas.width=A4W;
   canvas.height=A4H*pages;
-  // total displayed height includes gaps between pages
-  const totalH=A4H*pages+(pages-1)*PAGE_GAP;
-  cInner.style.width=A4W+'px';
-  cInner.style.height=totalH+'px';
+  cv.zoom=1; // reset zoom on open
   applyZoom();
   redrawAll();
   buildThumbs();
+  // scroll to top
+  cScroll.scrollTop=0;
+}
+
+function applyZoom(){
+  const pages=cv.strokes.length;
+  // Total visual height = pages * A4H + gaps between them
+  const totalH=(A4H*pages)+(pages>1?(pages-1)*PAGE_GAP:0);
+
+  // Canvas element display size (CSS pixels)
+  canvas.style.width=(A4W*cv.zoom)+'px';
+  canvas.style.height=(A4H*pages*cv.zoom)+'px';
+
+  // Inner container size = total visual height including gaps
+  cInner.style.width=(A4W*cv.zoom)+'px';
+  cInner.style.height=(totalH*cv.zoom)+'px';
+
+  // Add padding around the page for visual breathing room
+  const pad=Math.max(20,Math.round(24*cv.zoom));
+  cScroll.style.padding=pad+'px';
+
+  document.getElementById('zoom-label').textContent=Math.round(cv.zoom*100)+'%';
+  updatePageOverlays();
 }
 
 function redrawAll(){
@@ -1216,43 +1281,28 @@ function drawPageLines(){
   }
 }
 
-function applyZoom(){
-  const pages=cv.strokes.length;
-  const totalH=A4H*pages+(pages-1)*PAGE_GAP;
-  cInner.style.width=(A4W*cv.zoom)+'px';
-  cInner.style.height=(totalH*cv.zoom)+'px';
-  // scale just the canvas element, not the whole container
-  canvas.style.width=(A4W*cv.zoom)+'px';
-  canvas.style.height=(A4H*pages*cv.zoom)+'px';
-  // position canvas to sit at top (gaps handled by overlay divs)
-  canvas.style.position='absolute';
-  canvas.style.top='0';
-  canvas.style.left='0';
-  document.getElementById('zoom-label').textContent=Math.round(cv.zoom*100)+'%';
-  updatePageOverlays();
-  // update guides canvas if active
-  if(comfort.guides)renderWritingGuides();
-}
 
 function updatePageOverlays(){
   document.querySelectorAll('.pg-break,.pg-num').forEach(e=>e.remove());
   const pages=cv.strokes.length;
   for(let i=0;i<pages;i++){
-    // Page number — top-right corner of EACH page
+    // Each page's top Y in cInner: page i starts after i pages + i gaps
+    const pageTopPx=(i*A4H + i*PAGE_GAP)*cv.zoom;
+
+    // Page number badge at top-right of this page
     const pn=document.createElement('div');
     pn.className='pg-num';
     pn.textContent=(i+1)+' / '+pages;
-    // Each page starts at i*(A4H + PAGE_GAP)*zoom, gap sits BEFORE the page (except page 0)
-    const pageTopPx=i*(A4H+PAGE_GAP)*cv.zoom;
     pn.style.top=pageTopPx+'px';
-    pn.style.right='16px';
+    pn.style.right='0';
     cInner.appendChild(pn);
 
-    // Break divider BEFORE each page (except the first)
-    if(i>0){
+    // Gap divider sits AFTER each page (before the next)
+    if(i<pages-1){
       const br=document.createElement('div');
       br.className='pg-break';
-      br.style.top=((i*(A4H+PAGE_GAP)-PAGE_GAP)*cv.zoom)+'px';
+      // Gap starts right after page i ends
+      br.style.top=(pageTopPx + A4H*cv.zoom)+'px';
       br.style.height=(PAGE_GAP*cv.zoom)+'px';
       cInner.appendChild(br);
     }
@@ -1389,17 +1439,17 @@ function checkAutoPage(points){
 function addPage(auto=false){
   cv.strokes.push([]);
   const pages=cv.strokes.length;
+  // Expand canvas resolution
+  canvas.width=A4W;
   canvas.height=A4H*pages;
-  const totalH=A4H*pages+(pages-1)*PAGE_GAP;
-  cInner.style.height=(totalH*cv.zoom)+'px';
-  canvas.style.height=(A4H*pages*cv.zoom)+'px';
   if(cv.note)cv.note.strokes=cv.strokes;
   redrawAll();
-  updatePageOverlays();
+  applyZoom();
   buildThumbs();
   if(!auto){
     setTimeout(()=>{
-      cScroll.scrollTo({top:(pages-1)*(A4H+PAGE_GAP)*cv.zoom,behavior:'smooth'});
+      const totalH=(A4H*pages+(pages-1)*PAGE_GAP)*cv.zoom;
+      cScroll.scrollTo({top:totalH,behavior:'smooth'});
     },80);
   }
 }
@@ -1435,13 +1485,17 @@ function updateThumb(pg){
 
 function goToPage(i){
   document.querySelectorAll('.snap-item').forEach((el,j)=>el.classList.toggle('active',j===i));
-  cScroll.scrollTo({top:i*(A4H+PAGE_GAP)*cv.zoom,behavior:'smooth'});
+  const pad=Math.max(20,Math.round(24*cv.zoom));
+  const pageTop=(i*A4H+i*PAGE_GAP)*cv.zoom;
+  cScroll.scrollTo({top:pageTop,behavior:'smooth'});
 }
 
 cScroll.addEventListener('scroll',()=>{
-  const pg=Math.floor(cScroll.scrollTop/((A4H+PAGE_GAP)*cv.zoom));
-  const clamped=Math.min(Math.max(pg,0),cv.strokes.length-1);
-  document.querySelectorAll('.snap-item').forEach((el,i)=>el.classList.toggle('active',i===clamped));
+  const pad=Math.max(20,Math.round(24*cv.zoom));
+  const scrolled=cScroll.scrollTop;
+  const pageH=(A4H+PAGE_GAP)*cv.zoom;
+  const pg=Math.min(Math.max(Math.floor(scrolled/pageH),0),cv.strokes.length-1);
+  document.querySelectorAll('.snap-item').forEach((el,i)=>el.classList.toggle('active',i===pg));
 });
 
 // ═══════════════════════════════════════════════════════════════
