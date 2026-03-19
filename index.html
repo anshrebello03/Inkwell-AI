@@ -188,29 +188,73 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 .notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;}
 .note-card{
   background:var(--s1);border:1px solid var(--b1);
-  border-radius:var(--r);overflow:hidden;
-  cursor:pointer;transition:all .2s;
+  border-radius:14px;overflow:hidden;
+  cursor:pointer;
+  transition:transform .22s cubic-bezier(.34,1.2,.64,1),box-shadow .22s ease,border-color .15s;
+  box-shadow:0 2px 10px rgba(0,0,0,.4),2px 3px 0 rgba(0,0,0,.3),4px 5px 0 rgba(0,0,0,.15);
 }
-.note-card:hover{border-color:var(--b2);transform:translateY(-3px);
-  box-shadow:0 12px 40px rgba(0,0,0,.6);}
-.note-thumb-wrap{aspect-ratio:3/4;position:relative;overflow:hidden;}
-.note-thumb-wrap canvas{width:100%;height:100%;display:block;}
-.note-thumb-overlay{
-  position:absolute;bottom:0;left:0;right:0;
-  background:linear-gradient(transparent,rgba(0,0,0,.5));
-  padding:16px 10px 8px;
-  display:flex;align-items:flex-end;justify-content:space-between;
+.note-card:hover{
+  border-color:var(--b2);
+  transform:translateY(-6px) rotate(-.5deg);
+  box-shadow:0 20px 60px rgba(0,0,0,.7),3px 4px 0 rgba(0,0,0,.3),6px 8px 0 rgba(0,0,0,.12);
 }
-.note-pg-badge{
-  font-size:9px;font-family:'JetBrains Mono',monospace;
-  color:rgba(255,255,255,.5);
-  background:rgba(0,0,0,.4);border-radius:10px;
-  padding:2px 6px;
+.note-card:active{transform:translateY(-2px) rotate(0deg);}
+
+/* Cover — textured notebook cover */
+.note-cover{
+  aspect-ratio:3/4;position:relative;overflow:hidden;
+  display:flex;flex-direction:column;
 }
-.note-info{padding:10px 12px 12px;}
+/* Leather grain */
+.note-cover::before{
+  content:'';position:absolute;inset:0;z-index:3;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+  mix-blend-mode:overlay;
+}
+/* Spine */
+.note-cover::after{
+  content:'';position:absolute;left:16px;top:0;bottom:0;width:1px;z-index:4;pointer-events:none;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.25) 15%,rgba(0,0,0,.25) 85%,transparent);
+}
+.note-cover-bg{position:absolute;inset:0;z-index:0;transition:filter .2s;}
+.note-card:hover .note-cover-bg{filter:brightness(1.1);}
+.note-cover-label{
+  position:absolute;bottom:0;left:0;right:0;z-index:5;
+  padding:20px 14px 12px 22px;
+  background:linear-gradient(transparent,rgba(0,0,0,.6));
+}
+.note-cover-title{
+  font-family:'Playfair Display',serif;font-size:13px;font-weight:400;
+  color:rgba(255,255,255,.92);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  letter-spacing:.02em;text-shadow:0 1px 6px rgba(0,0,0,.6);
+}
+.note-cover-sub{font-size:9px;color:rgba(255,255,255,.4);font-family:'JetBrains Mono',monospace;margin-top:3px;}
+/* Paper edge effect */
+.note-paper-edges{
+  position:absolute;bottom:0;right:10px;z-index:2;
+  display:flex;flex-direction:column-reverse;gap:1.5px;padding-bottom:2px;
+}
+.note-paper-edges span{display:block;height:2.5px;border-radius:1px 1px 0 0;background:rgba(245,242,236,.8);}
+/* Cover thumbnail — very subtle */
+.note-cover canvas{
+  width:100%;height:100%;display:block;
+  position:absolute;inset:0;z-index:1;
+  opacity:.15;mix-blend-mode:luminosity;
+}
+/* Cover color themes */
+.cv-burgundy .note-cover-bg{background:linear-gradient(155deg,#7a2535,#5a1522,#3e0e17);}
+.cv-midnight .note-cover-bg{background:linear-gradient(155deg,#1e2a52,#141c38,#0d1228);}
+.cv-forest .note-cover-bg{background:linear-gradient(155deg,#1e4530,#122b1e,#0a1d12);}
+.cv-sand .note-cover-bg{background:linear-gradient(155deg,#9a7848,#6e5232,#4e3820);}
+.cv-slate .note-cover-bg{background:linear-gradient(155deg,#2e3a50,#1e2838,#131c28);}
+.cv-rose .note-cover-bg{background:linear-gradient(155deg,#7a2848,#521830,#38101e);}
+.cv-obsidian .note-cover-bg{background:linear-gradient(155deg,#1a1a24,#101014,#08080c);}
+.cv-amber .note-cover-bg{background:linear-gradient(155deg,#7a5218,#523810,#382808);}
+
+.note-info{padding:9px 12px 11px;}
 .note-title{font-size:12px;font-weight:500;color:var(--t1);
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.note-meta{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:3px;}
+.note-meta{font-size:10px;color:var(--t3);font-family:'JetBrains Mono',monospace;margin-top:2px;}
 .note-tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
 .note-tag-chip{
   font-size:9px;padding:2px 7px;border-radius:10px;
@@ -466,17 +510,28 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* page elements */
 .page-wrap{
   position:relative;margin-bottom:0;
-  border-radius:2px;overflow:hidden;
-  box-shadow:0 4px 24px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.04);
+  border-radius:3px;
+  overflow:visible;
+  filter:drop-shadow(0 6px 24px rgba(0,0,0,.65))
+         drop-shadow(0 2px 4px rgba(0,0,0,.4))
+         drop-shadow(0 0 0 0.5px rgba(255,255,255,.05));
 }
-.page-canvas{display:block;touch-action:none;}
+.page-canvas{display:block;touch-action:none;border-radius:2px;}
+/* Paper texture overlay */
+.page-texture{
+  position:absolute;inset:0;border-radius:2px;
+  pointer-events:none;z-index:8;opacity:1;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23p)' opacity='0.032'/%3E%3C/svg%3E");
+  mix-blend-mode:multiply;
+}
+.page-texture-dark{mix-blend-mode:screen;opacity:.018;}
 .page-gap{
-  height:20px;
+  height:24px;
   display:flex;align-items:center;justify-content:center;
 }
 .page-gap-line{
-  width:60%;height:1px;
-  background:linear-gradient(90deg,transparent,rgba(200,169,110,.25),transparent);
+  width:55%;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(200,169,110,.18),transparent);
 }
 .pg-num{
   position:absolute;top:8px;right:10px;
@@ -666,6 +721,51 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 #ruler-svg{user-select:none;position:fixed;inset:0;width:100%;height:100%;
   pointer-events:none;z-index:160;display:none;}
 
+/* Live stroke preview canvas — sits above ruler so you see the line forming */
+#live-stroke-canvas{
+  position:fixed;inset:0;width:100%;height:100%;
+  pointer-events:none;z-index:170;display:none;
+  opacity:1;
+}
+
+/* Writing zone mode */
+#writing-zone-overlay{
+  position:fixed;inset:0;pointer-events:none;z-index:155;display:none;
+}
+/* Dimmed top region */
+#wz-dim-top{
+  position:absolute;top:52px;left:0;right:0;
+  background:rgba(11,11,14,.6);
+  pointer-events:none;
+  transition:height .25s cubic-bezier(.4,0,.2,1);
+}
+/* Writing strip */
+#wz-strip{
+  position:absolute;left:0;right:0;height:180px;
+  border-top:1px solid rgba(200,169,110,.3);
+  border-bottom:1px solid rgba(200,169,110,.3);
+  background:rgba(200,169,110,.03);
+  pointer-events:none;
+  transition:top .25s cubic-bezier(.4,0,.2,1);
+}
+/* Exit button */
+#wz-exit{
+  position:fixed;top:58px;right:108px;z-index:180;
+  background:var(--gdim);border:1px solid var(--gold);
+  color:var(--gold);border-radius:20px;
+  padding:5px 14px;font-size:11px;
+  font-family:'JetBrains Mono',monospace;
+  cursor:pointer;display:none;letter-spacing:.06em;
+  animation:fadeUp .2s ease;
+}
+/* Writing zone label */
+#wz-label{
+  position:fixed;z-index:180;
+  right:108px;font-size:10px;
+  font-family:'JetBrains Mono',monospace;color:rgba(200,169,110,.5);
+  letter-spacing:.08em;display:none;pointer-events:none;
+}
+
 /* wrist guard */
 #wrist-guard{
   position:fixed;bottom:0;pointer-events:none;z-index:55;display:none;
@@ -685,12 +785,72 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 /* loading overlay */
 #loading-overlay{
   position:fixed;inset:0;background:var(--bg);z-index:2000;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;
+  transition:opacity .6s ease;
 }
-.loading-logo{font-family:'Playfair Display',serif;font-size:36px;color:var(--gold);}
-.loading-sub{font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;letter-spacing:.1em;}
-.loading-bar{width:180px;height:1px;background:var(--s3);border-radius:1px;overflow:hidden;}
-.loading-fill{height:100%;background:var(--gold);border-radius:1px;width:0%;transition:width .3s;}
+/* Radial glow behind logo */
+#loading-overlay::before{
+  content:'';position:absolute;
+  width:400px;height:400px;border-radius:50%;
+  background:radial-gradient(circle,rgba(200,169,110,.06) 0%,transparent 70%);
+  pointer-events:none;
+  animation:loadGlow 3s ease-in-out infinite alternate;
+}
+@keyframes loadGlow{
+  0%{transform:scale(.85);opacity:.6;}
+  100%{transform:scale(1.15);opacity:1;}
+}
+.loading-logo{
+  font-family:'Playfair Display',serif;
+  font-size:52px;font-weight:400;
+  color:var(--gold);
+  letter-spacing:.06em;
+  animation:loadLogoIn .8s cubic-bezier(.34,1.4,.64,1) forwards;
+  opacity:0;
+}
+@keyframes loadLogoIn{
+  0%{opacity:0;transform:translateY(20px) scale(.92);}
+  100%{opacity:1;transform:translateY(0) scale(1);}
+}
+.loading-tagline{
+  font-family:'Playfair Display',serif;
+  font-size:14px;font-weight:400;
+  color:var(--t3);letter-spacing:.18em;
+  margin-top:10px;margin-bottom:48px;
+  opacity:0;
+  animation:loadFadeIn .6s ease .5s forwards;
+}
+@keyframes loadFadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.loading-bar{
+  width:120px;height:1px;
+  background:var(--s3);
+  border-radius:1px;overflow:hidden;
+  opacity:0;
+  animation:loadFadeIn .4s ease .8s forwards;
+}
+.loading-fill{
+  height:100%;background:var(--gold);border-radius:1px;
+  width:0%;
+  /* Smooth transition — updated by JS */
+  transition:width 1.2s cubic-bezier(.4,0,.2,1);
+}
+.loading-sub{
+  font-size:10px;color:var(--t4);
+  font-family:'JetBrains Mono',monospace;
+  letter-spacing:.14em;text-transform:uppercase;
+  margin-top:16px;
+  opacity:0;
+  animation:loadFadeIn .4s ease 1s forwards;
+}
+/* Decorative corner marks */
+#loading-overlay::after{
+  content:'✦';
+  position:absolute;bottom:36px;
+  font-size:14px;color:rgba(200,169,110,.2);
+  letter-spacing:.5em;
+  animation:loadFadeIn .6s ease 1.2s forwards;
+  opacity:0;
+}
 
 /* ── MISC ── */
 @media(max-width:640px){#home-nav{display:none;}}
@@ -701,8 +861,9 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
 <!-- ═══════ LOADING OVERLAY ═══════ -->
 <div id="loading-overlay">
   <div class="loading-logo">✦ Inkwell</div>
-  <div class="loading-sub">Loading your notes</div>
+  <div class="loading-tagline">Premium Notes</div>
   <div class="loading-bar"><div class="loading-fill" id="loading-fill"></div></div>
+  <div class="loading-sub" id="loading-sub">Preparing your workspace</div>
 </div>
 
 <!-- ═══════ HOME SCREEN ═══════ -->
@@ -794,6 +955,18 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/></svg>
         <span class="rtip">Pen (P)</span>
       </button>
+      <button class="rail-btn" id="rb-hl" onclick="setTool('hl')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l-1 9 4-3 4 3-1-9"/><path d="M12 2l2.4 4.8L20 8l-4 3.9 1 5.6L12 15l-5 2.5 1-5.6L4 8l5.6-1.2z"/></svg>
+        <span class="rtip">Highlighter (H)</span>
+      </button>
+      <!-- Highlighter color strip — shown when HL active -->
+      <div id="hl-color-strip" style="display:none;flex-direction:column;align-items:center;gap:4px;padding:2px 0;">
+        <div onclick="pickHlColor(0)" style="width:18px;height:18px;border-radius:3px;background:rgba(255,230,0,.7);cursor:pointer;border:2px solid rgba(255,230,0,.9);"></div>
+        <div onclick="pickHlColor(1)" style="width:18px;height:18px;border-radius:3px;background:rgba(100,220,100,.7);cursor:pointer;border:1px solid rgba(100,220,100,.4);"></div>
+        <div onclick="pickHlColor(2)" style="width:18px;height:18px;border-radius:3px;background:rgba(100,160,255,.7);cursor:pointer;border:1px solid rgba(100,160,255,.4);"></div>
+        <div onclick="pickHlColor(3)" style="width:18px;height:18px;border-radius:3px;background:rgba(255,100,160,.7);cursor:pointer;border:1px solid rgba(255,100,160,.4);"></div>
+        <div onclick="pickHlColor(4)" style="width:18px;height:18px;border-radius:3px;background:rgba(255,160,0,.7);cursor:pointer;border:1px solid rgba(255,160,0,.4);"></div>
+      </div>
 
       <!-- Eraser with sub-picker -->
       <div style="position:relative;width:100%;display:flex;justify-content:center;">
@@ -876,6 +1049,10 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
         <button class="tb-btn" onclick="enterPresent()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
           Present
+        </button>
+        <button class="tb-btn" onclick="exportPDF()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="12" y1="12" x2="12" y2="18"/></svg>
+          PDF
         </button>
         <button class="tb-btn" onclick="toggleComfortPanel()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
@@ -1018,6 +1195,17 @@ html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(
     <text id="ruler-ir" fill="#0b0b0e" font-size="10" text-anchor="middle" dominant-baseline="central" style="pointer-events:none;">↔</text>
   </g>
 </svg>
+
+<!-- Live stroke overlay — above ruler, shows line forming in real time -->
+<canvas id="live-stroke-canvas"></canvas>
+
+<!-- Writing zone overlay -->
+<div id="writing-zone-overlay">
+  <div id="wz-dim-top"></div>
+  <div id="wz-strip"></div>
+</div>
+<button id="wz-exit" onclick="exitWritingZone()">✕ Writing Zone</button>
+<div id="wz-label">WRITING ZONE</div>
 
 <!-- Toasts -->
 <div class="toast" id="palm-toast">⊗ Palm rejected</div>
@@ -1258,6 +1446,14 @@ function renderNotes(filterNotes){
   let notes=filterNotes||app.notes;
   if(currentView==='folder'&&app.activeFolder)notes=notes.filter(n=>n.folderId===app.activeFolder.id);
   if(currentView==='recent')notes=[...notes].sort((a,b)=>b.updated-a.updated).slice(0,12);
+// Cover color themes — assigned by note ID for consistency
+const COVER_THEMES=['cv-burgundy','cv-midnight','cv-forest','cv-sand','cv-slate','cv-rose','cv-obsidian','cv-amber'];
+function getCoverTheme(noteId){
+  // Deterministic theme from note ID
+  let hash=0;for(let i=0;i<noteId.length;i++)hash=(hash*31+noteId.charCodeAt(i))&0xffff;
+  return COVER_THEMES[hash%COVER_THEMES.length];
+}
+
   title.textContent=currentView==='folder'&&app.activeFolder?app.activeFolder.name:currentView==='recent'?'Recent':'All Notes';
   document.getElementById('notes-count').textContent=notes.length;
   if(!notes.length){
@@ -1265,14 +1461,21 @@ function renderNotes(filterNotes){
     return;
   }
   notes.forEach(n=>{
-    const pgBg=PAGE_COLORS.find(c=>c.id===n.pageColor)||PAGE_COLORS[0];
-    const card=document.createElement('div');card.className='note-card';
-    const tagsHtml=(n.tags||[]).slice(0,3).map(t=>`<span class="note-tag-chip">${t}</span>`).join('');
+    const theme=getCoverTheme(n.id);
+    const tagsHtml=(n.tags||[]).slice(0,2).map(t=>`<span class="note-tag-chip">${t}</span>`).join('');
+    const pageStyle=PAGE_STYLES.find(s=>s.id===n.pageStyle)||PAGE_STYLES[0];
+    // Paper edges (3 layers visible)
+    const edgesHtml='<span></span>'.repeat(3);
+    const card=document.createElement('div');
+    card.className=`note-card ${theme}`;
     card.innerHTML=`
-      <div class="note-thumb-wrap" style="background:${pgBg.bg}">
+      <div class="note-cover">
+        <div class="note-cover-bg"></div>
         <canvas id="nth-${n.id}" width="160" height="213"></canvas>
-        <div class="note-thumb-overlay">
-          <span class="note-pg-badge">${n.pageCount||1} pg</span>
+        <div class="note-paper-edges">${edgesHtml}</div>
+        <div class="note-cover-label">
+          <div class="note-cover-title">${n.title}</div>
+          <div class="note-cover-sub">${pageStyle.name} · ${n.pageCount||1} pg</div>
         </div>
       </div>
       <div class="note-info">
@@ -1292,13 +1495,10 @@ async function loadAndDrawThumb(note){
   const tc=el.getContext('2d');
   const pgBg=PAGE_COLORS.find(c=>c.id===note.pageColor)||PAGE_COLORS[0];
   tc.fillStyle=pgBg.bg;tc.fillRect(0,0,160,213);
-  // load first page strokes
   const strokes=await loadPageStrokes(note.id,0);
   if(!strokes.length)return;
   const sx=160/A4W,sy=213/A4H;
-  tc.save();tc.scale(sx,sy);
-  strokes.forEach(s=>drawStrokeCtx(tc,s,0));
-  tc.restore();
+  strokes.forEach(s=>drawStrokeThumb(tc,s,sx,sy,0));
 }
 
 function searchNotes(q){
@@ -1419,6 +1619,7 @@ async function openNote(note){
 
   document.getElementById('canvas-title').textContent=note.title;
   showScreen('canvas-screen');
+  initToolbarFade();
 
   // load progress
   const pages=note.pageCount||1;
@@ -1435,6 +1636,7 @@ async function openNote(note){
 function goHome(){
   clearTimeout(cv.saveTimer);
   if(cv.note&&cv.dirtyPages.size>0)flushDirtyPages();
+  restoreToolbar();
   showScreen('home');
   renderHome();
 }
@@ -1488,6 +1690,11 @@ function createPageDOM(i){
   pctx.imageSmoothingQuality='high';
   wrap.appendChild(pc);
 
+  // Paper texture overlay
+  const tex=document.createElement('div');
+  tex.className='page-texture'+(isDark?' page-texture-dark':'');
+  wrap.appendChild(tex);
+
   // page number
   const pn=document.createElement('div');
   pn.className='pg-num';
@@ -1533,12 +1740,15 @@ function createPageDOM(i){
 // ── Render a page to its offscreen canvas ──
 function renderPageOffscreen(i){
   if(!cv.offscreens[i])return;
-  const {ctx}=cv.offscreens[i];
+  const{ctx}=cv.offscreens[i];
   const pgBg=PAGE_COLORS.find(c=>c.id===cv.note.pageColor)||PAGE_COLORS[0];
   ctx.fillStyle=pgBg.bg;
   ctx.fillRect(0,0,A4W,A4H);
   drawPageLinesCtx(ctx,i);
-  (cv.strokes[i]||[]).forEach(s=>drawStrokeCtx(ctx,s,0));
+  // Draw highlights first (under ink)
+  (cv.strokes[i]||[]).filter(s=>s.isHighlight).forEach(s=>drawHighlightStroke(ctx,s));
+  // Draw ink strokes on top
+  (cv.strokes[i]||[]).filter(s=>!s.isHighlight).forEach(s=>drawStrokeCtx(ctx,s,0));
 }
 
 // ── Blit offscreen → visible page canvas ──
@@ -1555,23 +1765,6 @@ function redrawPage(i){
 }
 
 // ── Draw stroke onto a context (with y-offset for global coords) ──
-function drawStrokeCtx(c,stroke,yOffset){
-  if(!stroke.points||stroke.points.length<2)return;
-  c.save();
-  c.strokeStyle=stroke.color;c.lineWidth=stroke.width;
-  c.lineCap='round';c.lineJoin='round';
-  c.beginPath();
-  const p0=stroke.points[0];
-  c.moveTo(p0.x,p0.y-yOffset);
-  for(let i=1;i<stroke.points.length-1;i++){
-    const mx=(stroke.points[i].x+stroke.points[i+1].x)/2;
-    const my=(stroke.points[i].y+stroke.points[i+1].y)/2-yOffset;
-    c.quadraticCurveTo(stroke.points[i].x,stroke.points[i].y-yOffset,mx,my);
-  }
-  const last=stroke.points[stroke.points.length-1];
-  c.lineTo(last.x,last.y-yOffset);
-  c.stroke();c.restore();
-}
 
 // ── Draw page lines ──
 function drawPageLinesCtx(ctx,pageIndex){
@@ -1685,14 +1878,17 @@ function isWristZone(e){
 }
 
 function attachCanvasEvents(pc){
-  pc.addEventListener('mousedown',e=>onDown(e,pc));
+  pc.addEventListener('mousedown',e=>{
+    if(!handleDoubleTap(e,pc))onDown(e,pc);
+  });
   pc.addEventListener('mousemove',e=>onMove(e,pc));
   pc.addEventListener('mouseup',e=>onUp(e,pc));
   pc.addEventListener('mouseleave',e=>onUp(e,pc));
   pc.addEventListener('touchstart',e=>{
     if(isPalm(e)){showPalm();return;}
     if(isWristZone(e))return;
-    e.preventDefault();onDown(e,pc);
+    e.preventDefault();
+    if(!handleDoubleTap(e,pc))onDown(e,pc);
   },{passive:false});
   pc.addEventListener('touchmove',e=>{
     if(isPalm(e))return;
@@ -1701,11 +1897,70 @@ function attachCanvasEvents(pc){
   pc.addEventListener('touchend',e=>{e.preventDefault();onUp(e,pc);},{passive:false});
 }
 
+// ── Auto-shape hold detection ──
+let holdTimer=null;
+let holdIndicator=null;
+
+function clearHoldTimer(){
+  clearTimeout(holdTimer);holdTimer=null;
+  if(holdIndicator){holdIndicator.remove();holdIndicator=null;}
+}
+
+function showHoldRing(clientX,clientY){
+  if(holdIndicator)holdIndicator.remove();
+  holdIndicator=document.createElement('div');
+  holdIndicator.style.cssText=`
+    position:fixed;left:${clientX}px;top:${clientY}px;
+    width:48px;height:48px;border-radius:50%;
+    border:2px solid var(--gold);
+    transform:translate(-50%,-50%) scale(0);
+    pointer-events:none;z-index:800;
+    animation:holdRingAnim 0.6s cubic-bezier(.2,.8,.4,1) forwards;
+  `;
+  document.body.appendChild(holdIndicator);
+}
+
+// inject hold ring animation
+const holdStyle=document.createElement('style');
+holdStyle.textContent=`
+@keyframes holdRingAnim{
+  0%{transform:translate(-50%,-50%) scale(0);opacity:1;border-color:var(--gold);}
+  70%{transform:translate(-50%,-50%) scale(1);opacity:1;}
+  100%{transform:translate(-50%,-50%) scale(1.2);opacity:0;}
+}
+.shape-snap-flash{
+  position:fixed;inset:0;background:rgba(200,169,110,0.06);
+  pointer-events:none;z-index:700;
+  animation:snapFlash .3s ease forwards;
+}
+@keyframes snapFlash{0%{opacity:1;}100%{opacity:0;}}
+`;
+document.head.appendChild(holdStyle);
+
+function triggerAutoShape(pg){
+  if(!cv.currentStroke||cv.currentStroke.points.length<3)return;
+  // show flash
+  const flash=document.createElement('div');flash.className='shape-snap-flash';
+  document.body.appendChild(flash);setTimeout(()=>flash.remove(),350);
+
+  const snapped=recogniseAndSnap(cv.currentStroke.points);
+  if(snapped){
+    // replace the live stroke being drawn with the snapped shape
+    cv.currentStroke=snapped;
+    cv.currentStroke.page=pg;
+    redrawPage(pg);
+    showToast('mode-toast',`⬡ ${snapped.shapeName} — lift to confirm`);
+  } else {
+    showToast('mode-toast','· Keep drawing…');
+  }
+}
+
 function onDown(e,pc){
   if(ruler.dragging)return;
+  clearHoldTimer();
   cv.drawing=true;cv.redoStack=[];
+  restoreToolbar(); // ensure toolbar visible when starting to draw
   let{x,y,pageIdx}=getPageAndPos(e,pc);
-  // ruler snap
   const snapped=snapToRuler(x,y,pc);
   if(snapped){x=snapped.x;y=snapped.y;}
   y=applyBaselineSnap(y);
@@ -1713,6 +1968,14 @@ function onDown(e,pc){
 
   if(cv.tool==='pen'||cv.tool==='shape'){
     cv.currentStroke={color:cv.color,width:THICK[cv.thick-1],points:[{x,y}],page:pageIdx};
+  } else if(cv.tool==='hl'){
+    // Highlighter stroke — wide, transparent, flat
+    cv.currentStroke={
+      color:hlColor,hlColor:hlColor,hlAlpha:0.42,
+      width:THICK[cv.thick-1],
+      isHighlight:true,
+      points:[{x,y}],page:pageIdx
+    };
   } else if(cv.tool==='se'){
     eraseStroke({x,y,pageIdx});
   } else if(cv.tool==='pe'){
@@ -1728,6 +1991,23 @@ function onMove(e,pc){
   if(snapped){x=snapped.x;y=snapped.y;}
   y=applyBaselineSnap(y);
 
+  // Toolbar fade — start countdown while drawing
+  startToolbarFade();
+
+  // Hold timer for auto-shape
+  if(cv.tool==='pen'&&cv.currentStroke&&cv.currentStroke.points.length>0){
+    const last=cv.currentStroke.points[cv.currentStroke.points.length-1];
+    const dx=x-last.x,dy=y-last.y;
+    const moveDist=Math.sqrt(dx*dx+dy*dy);
+    if(moveDist>4){clearHoldTimer();}
+    else if(moveDist<2&&cv.currentStroke.points.length>8&&!holdTimer){
+      const cx2=e.touches?e.touches[0].clientX:e.clientX;
+      const cy2=e.touches?e.touches[0].clientY:e.clientY;
+      showHoldRing(cx2,cy2);
+      holdTimer=setTimeout(()=>{clearHoldTimer();triggerAutoShape(pageIdx);},620);
+    }
+  }
+
   if(cv.tool==='pe'){
     const ec=document.getElementById('eraser-ring');
     const cx2=e.touches?e.touches[0].clientX:e.clientX;
@@ -1738,27 +2018,64 @@ function onMove(e,pc){
     return;
   }
 
-  if((cv.tool==='pen'||cv.tool==='shape')&&cv.currentStroke){
-    const raw={x,y};
-    const stab=stabilizePoint(raw);
-    cv.currentStroke.points.push(stab);
-    // draw incrementally on the page's offscreen + blit
+  // Highlighter — incremental render
+  if(cv.tool==='hl'&&cv.currentStroke){
+    cv.currentStroke.points.push({x,y});
     const{ctx:oc}=cv.offscreens[pageIdx];
     if(cv.currentStroke.points.length>=2){
       const pts=cv.currentStroke.points;
       const n=pts.length-1;
-      oc.save();oc.strokeStyle=cv.currentStroke.color;oc.lineWidth=cv.currentStroke.width;
-      oc.lineCap='round';oc.lineJoin='round';oc.beginPath();
+      const w=THICK[cv.thick-1]*3.5;
+      oc.save();
+      oc.globalCompositeOperation='multiply';
+      oc.globalAlpha=cv.currentStroke.hlAlpha||0.42;
+      oc.strokeStyle=cv.currentStroke.hlColor||cv.currentStroke.color;
+      oc.lineWidth=w;oc.lineCap='square';oc.lineJoin='round';
+      oc.beginPath();
       if(n>=2){
         const mx1=(pts[n-2].x+pts[n-1].x)/2,my1=(pts[n-2].y+pts[n-1].y)/2;
         const mx2=(pts[n-1].x+pts[n].x)/2,my2=(pts[n-1].y+pts[n].y)/2;
         oc.moveTo(mx1,my1);oc.quadraticCurveTo(pts[n-1].x,pts[n-1].y,mx2,my2);
-      } else {
-        oc.moveTo(pts[0].x,pts[0].y);oc.lineTo(pts[1].x,pts[1].y);
-      }
+      } else {oc.moveTo(pts[0].x,pts[0].y);oc.lineTo(pts[1].x,pts[1].y);}
       oc.stroke();oc.restore();
     }
     blitPage(pageIdx);
+    checkAutoScroll({x,y});
+    return;
+  }
+
+  if((cv.tool==='pen'||cv.tool==='shape')&&cv.currentStroke){
+    const raw={x,y};
+    const stab=stabilizePoint(raw);
+    const pts=cv.currentStroke.points;
+    const baseW=THICK[cv.thick-1];
+    let segW=baseW;
+    let segAlpha=1.0; // Feature 3: variable opacity
+    if(pts.length>0){
+      const last=pts[pts.length-1];
+      const dx=stab.x-last.x,dy=stab.y-last.y;
+      const vel=Math.sqrt(dx*dx+dy*dy);
+      const velFactor=Math.max(0.38,Math.min(1.32,1.3-vel/32));
+      segW=baseW*velFactor;
+      // Variable opacity: fast strokes slightly transparent (like running pen)
+      // vel 0=fully opaque, vel 30+=15% transparent
+      segAlpha=Math.max(0.82,Math.min(1.0,1.0-vel/200));
+    }
+    cv.currentStroke.points.push({...stab,w:segW,a:segAlpha});
+    if(pts.length>=2){
+      drawIncrementalSegment(cv.offscreens[pageIdx].ctx,cv.currentStroke,pts.length-1);
+    }
+    blitPage(pageIdx);
+    // Feature 1: Draw live preview above ruler when ruler is active
+    if(liveActive){
+      drawLiveStrokeOverlay(cv.currentStroke,pc);
+    }
+    // Writing zone: check if need to auto-advance
+    if(wzActive){
+      const cx2=e.touches?e.touches[0].clientX:e.clientX;
+      const cy2=e.touches?e.touches[0].clientY:e.clientY;
+      checkWritingZoneAdvance(cx2,cy2);
+    }
     checkAutoScroll({x,y});
   } else if(cv.tool==='se'){
     eraseStroke({x,y,pageIdx});
@@ -1768,20 +2085,207 @@ function onMove(e,pc){
 function onUp(e,pc){
   if(!cv.drawing)return;
   cv.drawing=false;
+  clearHoldTimer();
   document.getElementById('eraser-ring').style.display='none';
+  // Clear live stroke overlay
+  if(liveActive)clearLiveCanvas();
 
-  if((cv.tool==='pen'||cv.tool==='shape')&&cv.currentStroke&&cv.currentStroke.points.length>1){
+  const isInkTool=cv.tool==='pen'||cv.tool==='shape'||cv.tool==='hl';
+  if(isInkTool&&cv.currentStroke&&cv.currentStroke.points.length>1){
     const pg=cv.currentStroke.page;
-    // decimate before storing
+
+    if(!cv.currentStroke.isHighlight){
+      applyTaper(cv.currentStroke);
+    }
     cv.currentStroke.points=decimatePoints(cv.currentStroke.points);
+
     cv.strokes[pg].push(cv.currentStroke);
     cv.undoStack.push({type:'add',pg,stroke:cv.currentStroke});
+
+    // Ink shimmer effect on completed stroke
+    if(!cv.currentStroke.isHighlight){
+      playInkShimmer(pg,cv.currentStroke);
+      triggerHaptic('light');
+    }
+
+    redrawPage(pg);
     updateThumb(pg);
     markDirty(pg);
     checkAutoPage(cv.currentStroke.points,pg);
+
     if(cv.tool==='shape')finishShapeStroke(cv.currentStroke.points,pg);
+    else if(cv.tool==='pen')maybeAutoSnapPen(cv.currentStroke.points,pg);
   }
   cv.currentStroke=null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  PREMIUM INK RENDERING ENGINE
+// ═══════════════════════════════════════════════════════════════
+
+// ── Taper: thin start and end of stroke like a real pen lifting ──
+function applyTaper(stroke){
+  const pts=stroke.points;
+  const n=pts.length;
+  if(n<4)return;
+
+  const taperLen=Math.min(Math.floor(n*0.18),12); // taper 18% of stroke, max 12 points
+  const baseW=stroke.width;
+
+  for(let i=0;i<taperLen;i++){
+    // start taper: 0.08 → 1.0
+    const t=i/taperLen;
+    const ease=t*t*(3-2*t); // smoothstep
+    pts[i].w=(pts[i].w||baseW)*Math.max(0.08,ease);
+  }
+  for(let i=0;i<taperLen;i++){
+    // end taper: 1.0 → 0.08
+    const idx=n-1-i;
+    const t=i/taperLen;
+    const ease=t*t*(3-2*t);
+    pts[idx].w=(pts[idx].w||baseW)*Math.max(0.08,ease);
+  }
+}
+
+// ── Incremental premium segment — drawn during live stroke ──
+function drawIncrementalSegment(ctx,stroke,idx){
+  const pts=stroke.points;
+  if(idx<1)return;
+
+  const p0=pts[idx-1];
+  const p1=pts[idx];
+  const w0=(p0.w||stroke.width)/2;
+  const w1=(p1.w||stroke.width)/2;
+  // Variable opacity: interpolate between segment alphas
+  const a0=p0.a!==undefined?p0.a:1;
+  const a1=p1.a!==undefined?p1.a:1;
+
+  ctx.save();
+  ctx.fillStyle=stroke.color;
+
+  const steps=Math.max(2,Math.ceil(Math.hypot(p1.x-p0.x,p1.y-p0.y)/1.5));
+  for(let s=0;s<=steps;s++){
+    const t=s/steps;
+    const x=p0.x+(p1.x-p0.x)*t;
+    const y=p0.y+(p1.y-p0.y)*t;
+    const r=w0+(w1-w0)*t;
+    const alpha=a0+(a1-a0)*t;
+    ctx.globalAlpha=alpha;
+    ctx.beginPath();
+    ctx.arc(x,y,Math.max(0.4,r),0,Math.PI*2);
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// ── Full premium stroke redraw — used when rendering saved strokes ──
+// Uses Catmull-Rom spline through all points with variable width
+function drawStrokeCtx(c,stroke,yOffset){
+  if(!stroke.points||stroke.points.length<2)return;
+  const pts=stroke.points;
+  const n=pts.length;
+  const baseW=stroke.width;
+
+  c.save();
+  c.fillStyle=stroke.color;
+
+  if(n===2){
+    // Single segment — just a capsule
+    const p0=pts[0],p1=pts[1];
+    const w=(baseW/2);
+    drawCapsule(c,p0.x,p0.y-yOffset,p1.x,p1.y-yOffset,w,w);
+  } else {
+    // Catmull-Rom: draw smooth variable-width stroke
+    // Generate interpolated points along the spline
+    const splinePts=catmullRomPoints(pts,yOffset);
+    // Draw as series of filled circles for smooth variable-width
+    for(let i=0;i<splinePts.length;i++){
+      const sp=splinePts[i];
+      const r=Math.max(0.5,(sp.w||baseW)/2);
+      c.beginPath();
+      c.arc(sp.x,sp.y,r,0,Math.PI*2);
+      c.fill();
+    }
+  }
+
+  c.restore();
+}
+
+// ── Catmull-Rom spline interpolation ──
+function catmullRomPoints(pts,yOffset){
+  const result=[];
+  const n=pts.length;
+  const steps=6; // points per segment — higher = smoother, slower
+
+  for(let i=0;i<n-1;i++){
+    const p0=pts[Math.max(0,i-1)];
+    const p1=pts[i];
+    const p2=pts[i+1];
+    const p3=pts[Math.min(n-1,i+2)];
+
+    for(let s=0;s<steps;s++){
+      const t=s/steps;
+      const t2=t*t,t3=t2*t;
+
+      // Catmull-Rom formula
+      const x=0.5*((2*p1.x)+(-p0.x+p2.x)*t+(2*p0.x-5*p1.x+4*p2.x-p3.x)*t2+(-p0.x+3*p1.x-3*p2.x+p3.x)*t3);
+      const y=0.5*((2*p1.y)+(-p0.y+p2.y)*t+(2*p0.y-5*p1.y+4*p2.y-p3.y)*t2+(-p0.y+3*p1.y-3*p2.y+p3.y)*t3);
+
+      // Interpolate width
+      const w0=p1.w||pts[0].width||8;
+      const w1=p2.w||pts[0].width||8;
+      const w=w0+(w1-w0)*t;
+
+      result.push({x,y:y-yOffset,w});
+    }
+  }
+  // Add last point
+  const last=pts[n-1];
+  result.push({x:last.x,y:last.y-yOffset,w:last.w||0.5});
+  return result;
+}
+
+// ── Draw a tapered capsule between two points ──
+function drawCapsule(ctx,x0,y0,x1,y1,r0,r1){
+  const angle=Math.atan2(y1-y0,x1-x0);
+  const sin=Math.sin(angle),cos=Math.cos(angle);
+
+  ctx.beginPath();
+  // Start circle
+  ctx.arc(x0,y0,r0,0,Math.PI*2);
+  ctx.fill();
+  // End circle
+  ctx.arc(x1,y1,r1,0,Math.PI*2);
+  ctx.fill();
+  // Connecting trapezoid
+  ctx.beginPath();
+  ctx.moveTo(x0-r0*sin,y0+r0*cos);
+  ctx.lineTo(x1-r1*sin,y1+r1*cos);
+  ctx.lineTo(x1+r1*sin,y1-r1*cos);
+  ctx.lineTo(x0+r0*sin,y0-r0*cos);
+  ctx.closePath();
+  ctx.fill();
+}
+
+// ── Thumbnail stroke drawing (simplified for speed) ──
+function drawStrokeThumb(c,stroke,scaleX,scaleY,yOffset){
+  if(!stroke.points||stroke.points.length<2)return;
+  c.save();
+  c.strokeStyle=stroke.color;
+  c.lineWidth=Math.max(0.5,(stroke.width||2)*scaleX);
+  c.lineCap='round';c.lineJoin='round';c.beginPath();
+  const pts=stroke.points;
+  c.moveTo(pts[0].x*scaleX,(pts[0].y-yOffset)*scaleY);
+  for(let i=1;i<pts.length-1;i++){
+    const mx=(pts[i].x+pts[i+1].x)/2*scaleX;
+    const my=((pts[i].y+pts[i+1].y)/2-yOffset)*scaleY;
+    c.quadraticCurveTo(pts[i].x*scaleX,(pts[i].y-yOffset)*scaleY,mx,my);
+  }
+  const last=pts[pts.length-1];
+  c.lineTo(last.x*scaleX,(last.y-yOffset)*scaleY);
+  c.stroke();
+  c.restore();
 }
 
 // ── Erase pixel on specific page ──
@@ -1989,23 +2493,226 @@ function doRedo(){
 // ═══════════════════════════════════════════════════════════════
 let eraserMode='se';
 
+// ── Highlighter color palette ──
+const HL_COLORS=['rgba(255,230,0,.42)','rgba(100,220,100,.38)','rgba(100,160,255,.38)','rgba(255,100,160,.38)','rgba(255,160,0,.42)'];
+let hlColor=HL_COLORS[0];
+
 function setTool(t){
   cv.tool=t;
-  ['pen','eraser','shape'].forEach(id=>{
+  ['pen','hl','eraser','shape'].forEach(id=>{
     const el=document.getElementById('rb-'+id);
     if(el)el.classList.toggle('active',id===t||(id==='eraser'&&(t==='se'||t==='pe')));
   });
-  const cursors={pen:'crosshair',se:'cell',pe:'none',shape:'crosshair'};
+  const cursors={pen:'crosshair',hl:'crosshair',se:'cell',pe:'none',shape:'crosshair'};
   document.querySelectorAll('.page-canvas').forEach(c=>c.style.cursor=cursors[t]||'crosshair');
-  const labels={pen:'✏  Pen',se:'◻ Stroke Eraser',pe:'◉ Pixel Eraser',shape:'⬡  Shape'};
+  const labels={pen:'✏  Pen',hl:'🖊  Highlighter',se:'◻ Stroke Eraser',pe:'◉ Pixel Eraser',shape:'⬡  Shape'};
   showToast('mode-toast',labels[t]||t);
   if(t!=='se'&&t!=='pe')closeEraserPicker();
+  // Update highlighter color dot visibility
+  const hlDot=document.getElementById('hl-color-strip');
+  if(hlDot)hlDot.style.display=t==='hl'?'flex':'none';
+  triggerHaptic('light');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  HIGHLIGHTER TOOL
+// ═══════════════════════════════════════════════════════════════
+function drawHighlightStroke(ctx,stroke){
+  if(!stroke.points||stroke.points.length<2)return;
+  ctx.save();
+  ctx.globalAlpha=0.01; // will be set per-stroke
+  // Highlighter: wide, flat, multiply blend, no taper
+  const color=stroke.hlColor||stroke.color;
+  const w=stroke.width*3.5; // much wider than pen
+
+  // Use destination-over style: highlight goes UNDER existing ink
+  ctx.globalCompositeOperation='multiply';
+
+  // Parse color to get rgba
+  ctx.strokeStyle=color;
+  ctx.lineWidth=w;
+  ctx.lineCap='square'; // flat ends like a real highlighter
+  ctx.lineJoin='round';
+  ctx.globalAlpha=stroke.hlAlpha||0.42;
+
+  ctx.beginPath();
+  const pts=stroke.points;
+  ctx.moveTo(pts[0].x,pts[0].y);
+  for(let i=1;i<pts.length-1;i++){
+    const mx=(pts[i].x+pts[i+1].x)/2;
+    const my=(pts[i].y+pts[i+1].y)/2;
+    ctx.quadraticCurveTo(pts[i].x,pts[i].y,mx,my);
+  }
+  ctx.lineTo(pts[pts.length-1].x,pts[pts.length-1].y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  TOOLBAR FADE WHILE WRITING
+// ═══════════════════════════════════════════════════════════════
+let toolbarFadeTimer=null;
+let toolbarFaded=false;
+
+function startToolbarFade(){
+  clearTimeout(toolbarFadeTimer);
+  toolbarFadeTimer=setTimeout(()=>{
+    toolbarFaded=true;
+    document.getElementById('rail').style.opacity='0.15';
+    document.getElementById('canvas-topbar').style.opacity='0.12';
+    document.getElementById('snap-sidebar').style.opacity='0.15';
+  },2800); // fade after 2.8s of no toolbar interaction
+}
+
+function restoreToolbar(){
+  clearTimeout(toolbarFadeTimer);
+  if(toolbarFaded){
+    toolbarFaded=false;
+    document.getElementById('rail').style.opacity='1';
+    document.getElementById('canvas-topbar').style.opacity='1';
+    document.getElementById('snap-sidebar').style.opacity='1';
+  }
+}
+
+// Add transition to rail/topbar/sidebar CSS via JS
+function initToolbarFade(){
+  const style=document.createElement('style');
+  style.textContent=`
+    #rail,#canvas-topbar,#snap-sidebar{transition:opacity .6s ease;}
+    #canvas-area:hover #rail,#canvas-area:hover #canvas-topbar{opacity:1!important;}
+  `;
+  document.head.appendChild(style);
+  // Mouse/touch over toolbar restores it
+  ['rail','canvas-topbar','snap-sidebar'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){
+      el.addEventListener('pointerenter',restoreToolbar,{passive:true});
+      el.addEventListener('touchstart',restoreToolbar,{passive:true});
+    }
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  INK DRY SHIMMER + HAPTICS
+// ═══════════════════════════════════════════════════════════════
+function triggerHaptic(type='light'){
+  // Web Haptics API — works on Safari/iOS
+  if(navigator.vibrate){
+    const patterns={light:1,medium:8,double:[6,30,6],snap:[4,20,8]};
+    navigator.vibrate(patterns[type]||1);
+  }
+  // For Apple Taptic Engine via AudioContext impulse trick
+  try{
+    if(!window._hapticCtx)window._hapticCtx=new(window.AudioContext||window.webkitAudioContext)();
+    const ctx=window._hapticCtx;
+    if(ctx.state==='suspended')ctx.resume();
+    const osc=ctx.createOscillator();
+    const gain=ctx.createGain();
+    osc.connect(gain);gain.connect(ctx.destination);
+    const intensities={light:0.003,medium:0.008,snap:0.012,double:0.006};
+    gain.gain.setValueAtTime(intensities[type]||0.003,ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.08);
+    osc.frequency.setValueAtTime(200,ctx.currentTime);
+    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+0.08);
+  }catch(e){}
+}
+
+function playInkShimmer(pageIdx,stroke){
+  // Flash a bright overlay on the last stroke position for 80ms
+  if(!pageDOMs[pageIdx])return;
+  const{ctx}=pageDOMs[pageIdx];
+  const pts=stroke.points;
+  if(!pts||pts.length<2)return;
+
+  const last=pts[pts.length-1];
+  const w=(stroke.width||4)*1.8;
+
+  // Quick bright highlight paint
+  ctx.save();
+  ctx.globalCompositeOperation='screen';
+  ctx.globalAlpha=0.22;
+  ctx.fillStyle='#ffffff';
+  ctx.beginPath();
+  // Draw along last few points
+  const start=Math.max(0,pts.length-8);
+  for(let i=start;i<pts.length;i++){
+    ctx.beginPath();
+    ctx.arc(pts[i].x,pts[i].y,(pts[i].w||w)/2,0,Math.PI*2);
+    ctx.fill();
+  }
+  ctx.restore();
+
+  // Fade it out in 80ms
+  setTimeout(()=>{
+    // Re-blit from offscreen (removes the shimmer)
+    blitPage(pageIdx);
+  },80);
+}
+
+// Thickness preview stroke
+let thickPreviewTimer=null;
+function showThicknessPreview(thick){
+  clearTimeout(thickPreviewTimer);
+  const existing=document.getElementById('thick-preview');
+  if(existing)existing.remove();
+
+  const preview=document.createElement('canvas');
+  preview.id='thick-preview';
+  preview.width=160;preview.height=60;
+  preview.style.cssText=`
+    position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);
+    pointer-events:none;z-index:600;
+    opacity:0;transition:opacity .15s;border-radius:8px;
+    background:rgba(20,20,24,.85);border:1px solid rgba(255,255,255,.1);
+    backdrop-filter:blur(8px);
+  `;
+  document.body.appendChild(preview);
+
+  const ctx=preview.getContext('2d');
+  ctx.fillStyle='rgba(20,20,24,.85)';ctx.fillRect(0,0,160,60);
+
+  // Draw a demo curve stroke at this thickness
+  const w=THICK[thick-1];
+  ctx.fillStyle=cv.color||'#f0ece6';
+  const pts=[{x:20,y:40},{x:50,y:20},{x:80,y:36},{x:110,y:18},{x:140,y:32}];
+  // Add width to each
+  pts.forEach((p,i)=>p.w=w*(0.6+i*0.1));
+  for(let i=0;i<pts.length-1;i++){
+    const p0=pts[i],p1=pts[i+1];
+    const steps=Math.ceil(Math.hypot(p1.x-p0.x,p1.y-p0.y)/1.5);
+    for(let s=0;s<=steps;s++){
+      const t=s/steps;
+      const x=p0.x+(p1.x-p0.x)*t;
+      const y=p0.y+(p1.y-p0.y)*t;
+      const r=(p0.w+(p1.w-p0.w)*t)/2;
+      ctx.beginPath();ctx.arc(x,y,Math.max(0.5,r),0,Math.PI*2);ctx.fill();
+    }
+  }
+
+  requestAnimationFrame(()=>{preview.style.opacity='1';});
+  thickPreviewTimer=setTimeout(()=>{
+    preview.style.opacity='0';
+    setTimeout(()=>preview.remove(),160);
+  },900);
 }
 
 function setThick(t,el){
   cv.thick=t;
   document.querySelectorAll('.thick-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');
+  showThicknessPreview(t);
+  triggerHaptic('light');
+}
+
+function pickHlColor(idx){
+  hlColor=HL_COLORS[idx];
+  // Update border on active swatch
+  const swatches=document.querySelectorAll('#hl-color-strip div');
+  swatches.forEach((s,i)=>{
+    s.style.border=i===idx?`2px solid rgba(255,255,255,.7)`:`1px solid transparent`;
+    s.style.transform=i===idx?'scale(1.15)':'scale(1)';
+  });
+  triggerHaptic('light');
 }
 
 function updateRailColor(){
@@ -2111,6 +2818,97 @@ function applyBaselineSnap(y){
   if(Math.abs(y-nearest)<step*.35)return y+(nearest-y)*.4;
   return y;
 }
+// ═══════════════════════════════════════════════════════════════
+// ██████  WRITING ZONE MODE
+// ═══════════════════════════════════════════════════════════════
+let wzActive=false;
+let wzStripTop=0; // Y position of the strip in viewport px
+let wzZoomBefore=1;
+let wzScrollBefore=0;
+let lastTapTime=0;
+let lastTapPage=-1;
+
+// Double-tap on canvas → enter writing zone
+function handleDoubleTap(e,pc){
+  const now=Date.now();
+  const pageIdx=+pc.dataset.page;
+  const timeSinceLast=now-lastTapTime;
+
+  if(timeSinceLast<400&&lastTapPage===pageIdx){
+    // Double tap detected
+    lastTapTime=0;lastTapPage=-1;
+    if(wzActive){exitWritingZone();}
+    else{enterWritingZone(e,pc,pageIdx);}
+    return true;
+  }
+  lastTapTime=now;lastTapPage=pageIdx;
+  return false;
+}
+
+function enterWritingZone(e,pc,pageIdx){
+  wzActive=true;
+  wzZoomBefore=cv.zoom;
+  wzScrollBefore=cScroll.scrollTop;
+
+  // Zoom in to 180% centered on tap position
+  const{y}=getPageAndPos(e,pc);
+  const stripH=180; // height of writing zone strip in screen px at new zoom
+
+  // Set zoom
+  cv.zoom=1.75;
+  applyZoom();
+
+  // Scroll so tapped Y is in the strip area (60% down the screen)
+  const targetScrollY=y*cv.zoom+(pageIdx*(A4H+PAGE_GAP)*cv.zoom)-window.innerHeight*0.55;
+  cScroll.scrollTo({top:Math.max(0,targetScrollY),behavior:'instant'});
+
+  // Show overlay
+  const topbarH=52;
+  const avail=window.innerHeight-topbarH;
+  const stripY=Math.round(avail*0.55)+topbarH; // strip sits at 55% of screen
+  wzStripTop=stripY;
+
+  const overlay=document.getElementById('writing-zone-overlay');
+  const dimTop=document.getElementById('wz-dim-top');
+  const strip=document.getElementById('wz-strip');
+  const exitBtn=document.getElementById('wz-exit');
+  const label=document.getElementById('wz-label');
+
+  dimTop.style.height=(stripY-topbarH)+'px';
+  strip.style.top=(stripY-topbarH)+'px';
+  overlay.style.display='block';
+  exitBtn.style.display='block';
+  exitBtn.style.top=(stripY-36)+'px';
+  label.style.display='block';
+  label.style.top=(stripY+stripH+6)+'px';
+
+  showToast('mode-toast','✎ Writing zone — double-tap to exit');
+}
+
+function exitWritingZone(){
+  wzActive=false;
+  document.getElementById('writing-zone-overlay').style.display='none';
+  document.getElementById('wz-exit').style.display='none';
+  document.getElementById('wz-label').style.display='none';
+  // Restore previous zoom
+  cv.zoom=wzZoomBefore;
+  applyZoom();
+  cScroll.scrollTo({top:wzScrollBefore,behavior:'smooth'});
+}
+
+// Auto-advance writing zone strip as pen nears right edge
+function checkWritingZoneAdvance(screenX,screenY){
+  if(!wzActive)return;
+  // If pen is near the right 15% of screen, scroll right (pan)
+  // Actually for vertical notes we auto-scroll down when near strip bottom
+  const stripBottom=wzStripTop+180;
+  if(screenY>stripBottom-30){
+    cScroll.scrollBy({top:40,behavior:'smooth'});
+    // Update strip position
+    wzStripTop=Math.min(wzStripTop,window.innerHeight*0.7);
+  }
+}
+
 function checkAutoScroll(pos){
   if(!comfort.ascroll)return;
   const pageEl=pageDOMs[cv.currentPage]?.canvas;if(!pageEl)return;
@@ -2150,6 +2948,55 @@ function finishShapeStroke(points,pg){
     }
   },480);
 }
+// Auto-snap on pen tool — only if stroke is very clearly geometric
+// (high confidence threshold so normal handwriting never triggers)
+function maybeAutoSnapPen(points,pg){
+  if(points.length<6)return;
+  const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
+  const W=Math.max(...xs)-Math.min(...xs);
+  const H=Math.max(...ys)-Math.min(...ys);
+  const diag=Math.sqrt(W*W+H*H);
+  if(diag<30)return; // too small
+
+  // Only auto-snap if the stroke has very high geometric confidence
+  // Line: extremely straight
+  const isVeryLine=(W<diag*.08||H<diag*.08);
+  if(isVeryLine){
+    const snapped=recogniseAndSnap(points);
+    if(snapped&&snapped.shapeName==='line'){
+      cv.strokes[pg].pop();cv.undoStack.pop();
+      cv.strokes[pg].push(snapped);
+      cv.undoStack.push({type:'add',pg,stroke:snapped});
+      redrawPage(pg);updateThumb(pg);markDirty(pg);
+      showToast('mode-toast','╱ Line snapped');
+    }
+    return;
+  }
+
+  // Circle: very round closure
+  const n=points.length;
+  const startEnd=dist(points[0],points[n-1]);
+  const isClosed=startEnd<diag*.25;
+  if(isClosed){
+    const cx=(Math.min(...xs)+Math.max(...xs))/2;
+    const cy=(Math.min(...ys)+Math.max(...ys))/2;
+    const dists=points.map(p=>dist(p,{x:cx,y:cy}));
+    const mean=dists.reduce((a,b)=>a+b,0)/dists.length;
+    const variance=dists.map(d=>(d-mean)**2).reduce((a,b)=>a+b,0)/dists.length;
+    const roundness=1-Math.min(Math.sqrt(variance)/Math.max(mean,1),1);
+    if(roundness>0.88){ // very high threshold — only very clean circles
+      const snapped=recogniseAndSnap(points);
+      if(snapped&&snapped.shapeName==='circle'){
+        cv.strokes[pg].pop();cv.undoStack.pop();
+        cv.strokes[pg].push(snapped);
+        cv.undoStack.push({type:'add',pg,stroke:snapped});
+        redrawPage(pg);updateThumb(pg);markDirty(pg);
+        showToast('mode-toast','◯ Circle snapped');
+      }
+    }
+  }
+}
+
 function recogniseAndSnap(pts){
   const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
   const minX=Math.min(...xs),maxX=Math.max(...xs);
@@ -2222,6 +3069,58 @@ function buildShape(shape,pts,W,H,cx,cy,minX,minY,maxX,maxY,base){
 // RULER
 // ═══════════════════════════════════════════════════════════════
 let ruler={active:false,x1:200,y1:400,x2:700,y2:400,dragging:null,dragStart:{x:0,y:0},bodyStart:{}};
+// ═══════════════════════════════════════════════════════════════
+// ██████  LIVE STROKE OVERLAY (visible above ruler)
+// ═══════════════════════════════════════════════════════════════
+const liveCanvas=document.getElementById('live-stroke-canvas');
+const liveCtx=liveCanvas.getContext('2d');
+let liveActive=false; // true when ruler is on and we need live preview
+
+function initLiveCanvas(){
+  liveCanvas.width=window.innerWidth*DPR;
+  liveCanvas.height=window.innerHeight*DPR;
+  liveCanvas.style.width=window.innerWidth+'px';
+  liveCanvas.style.height=window.innerHeight+'px';
+  liveCtx.scale(DPR,DPR);
+}
+window.addEventListener('resize',initLiveCanvas,{passive:true});
+initLiveCanvas();
+
+function clearLiveCanvas(){
+  liveCtx.clearRect(0,0,window.innerWidth,window.innerHeight);
+}
+
+// Draw the current live stroke onto the overlay in SCREEN coordinates
+function drawLiveStrokeOverlay(stroke,pageCanvas){
+  if(!stroke||!stroke.points||stroke.points.length<2)return;
+  const r=pageCanvas.getBoundingClientRect();
+
+  clearLiveCanvas();
+  liveCtx.save();
+  liveCtx.strokeStyle=stroke.isHighlight?(stroke.hlColor||stroke.color):stroke.color;
+  liveCtx.lineWidth=(stroke.width||2)*cv.zoom*(stroke.isHighlight?3.5:1);
+  liveCtx.lineCap=stroke.isHighlight?'square':'round';
+  liveCtx.lineJoin='round';
+  liveCtx.globalAlpha=stroke.isHighlight?(stroke.hlAlpha||0.42):1;
+  if(stroke.isHighlight)liveCtx.globalCompositeOperation='multiply';
+
+  liveCtx.beginPath();
+  const pts=stroke.points;
+  // Convert canvas coords → screen coords
+  const toScreen=p=>({x:p.x*cv.zoom+r.left, y:p.y*cv.zoom+r.top});
+  const p0=toScreen(pts[0]);
+  liveCtx.moveTo(p0.x,p0.y);
+  for(let i=1;i<pts.length-1;i++){
+    const pa=toScreen(pts[i]),pb=toScreen(pts[i+1]);
+    const mx=(pa.x+pb.x)/2,my=(pa.y+pb.y)/2;
+    liveCtx.quadraticCurveTo(pa.x,pa.y,mx,my);
+  }
+  const last=toScreen(pts[pts.length-1]);
+  liveCtx.lineTo(last.x,last.y);
+  liveCtx.stroke();
+  liveCtx.restore();
+}
+
 function toggleRuler(){
   ruler.active=!ruler.active;
   document.getElementById('rb-ruler').classList.toggle('active',ruler.active);
@@ -2229,9 +3128,17 @@ function toggleRuler(){
   if(ruler.active){
     const vw=window.innerWidth,vh=window.innerHeight;
     ruler.x1=vw*.15;ruler.y1=vh*.5;ruler.x2=vw*.85;ruler.y2=vh*.5;
-    svg.style.display='block';renderRuler();
-    showToast('mode-toast','📏 Ruler — drag ends to rotate');
-  } else svg.style.display='none';
+    svg.style.display='block';
+    liveCanvas.style.display='block'; // show live overlay when ruler is active
+    liveActive=true;
+    renderRuler();
+    showToast('mode-toast','📏 Ruler — draw along edge to snap');
+  } else {
+    svg.style.display='none';
+    liveCanvas.style.display='none';
+    clearLiveCanvas();
+    liveActive=false;
+  }
 }
 function renderRuler(){
   const{x1,y1,x2,y2}=ruler;
@@ -2365,18 +3272,124 @@ function renderNavTags(){
 }
 
 // ═══════════════════════════════════════════════════════════════
-// OFFLINE STORAGE — export / import
+// EXPORT PDF
 // ═══════════════════════════════════════════════════════════════
+async function exportPDF(){
+  if(!cv.note){showToast('bm-toast','No note open');return;}
+  showToast('bm-toast','⏳ Generating PDF…');
+
+  // Flush any pending saves first
+  clearTimeout(cv.saveTimer);
+  if(cv.dirtyPages.size>0)await flushDirtyPages();
+
+  // Load jsPDF dynamically
+  if(!window.jspdf){
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload=res;s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const{jsPDF}=window.jspdf;
+  // A4 in mm: 210 x 297
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const pgW=210,pgH=297;
+
+  const pages=cv.strokes.length;
+  for(let i=0;i<pages;i++){
+    if(i>0)pdf.addPage();
+
+    // Render this page to a temp canvas at high quality
+    const tmpCanvas=document.createElement('canvas');
+    tmpCanvas.width=A4W*2;tmpCanvas.height=A4H*2; // 2x for PDF quality
+    const tmpCtx=tmpCanvas.getContext('2d');
+    tmpCtx.scale(2,2);
+    tmpCtx.imageSmoothingEnabled=true;
+    tmpCtx.imageSmoothingQuality='high';
+
+    // Background
+    const pgBg=PAGE_COLORS.find(c=>c.id===cv.note.pageColor)||PAGE_COLORS[0];
+    tmpCtx.fillStyle=pgBg.bg;
+    tmpCtx.fillRect(0,0,A4W,A4H);
+
+    // Page lines
+    drawPageLinesCtx(tmpCtx,i);
+
+    // Strokes for this page (load from DB if not in memory)
+    let strokes=cv.strokes[i]||[];
+    if(!strokes.length){
+      strokes=await loadPageStrokes(cv.note.id,i);
+    }
+    strokes.forEach(s=>drawStrokeCtx(tmpCtx,s,0));
+
+    // Page number
+    const isDark=cv.note.pageColor==='dark'||cv.note.pageColor==='black';
+    tmpCtx.fillStyle=isDark?'rgba(200,169,110,0.5)':'rgba(120,100,60,0.4)';
+    tmpCtx.font='22px monospace';
+    tmpCtx.textAlign='right';
+    tmpCtx.fillText((i+1)+' / '+pages, A4W-16, 28);
+
+    // Add to PDF
+    const imgData=tmpCanvas.toDataURL('image/jpeg',0.92);
+    pdf.addImage(imgData,'JPEG',0,0,pgW,pgH);
+
+    // progress toast
+    showToast('bm-toast',`⏳ Page ${i+1} / ${pages}…`);
+    // yield to UI thread
+    await new Promise(r=>setTimeout(r,10));
+  }
+
+  // Save PDF
+  const filename=(cv.note.title||'Inkwell').replace(/[^a-z0-9]/gi,'_')+'.pdf';
+  pdf.save(filename);
+  showToast('bm-toast','✓ PDF exported — '+pages+' pages');
+}
+
+// Export current page only as PDF
+async function exportPagePDF(){
+  if(!cv.note)return;
+  showToast('bm-toast','⏳ Exporting page…');
+
+  if(!window.jspdf){
+    await new Promise((res,rej)=>{
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      s.onload=res;s.onerror=rej;
+      document.head.appendChild(s);
+    });
+  }
+
+  const{jsPDF}=window.jspdf;
+  const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const i=cv.currentPage;
+
+  const tmpCanvas=document.createElement('canvas');
+  tmpCanvas.width=A4W*2;tmpCanvas.height=A4H*2;
+  const tmpCtx=tmpCanvas.getContext('2d');
+  tmpCtx.scale(2,2);
+  tmpCtx.imageSmoothingEnabled=true;
+  tmpCtx.imageSmoothingQuality='high';
+
+  const pgBg=PAGE_COLORS.find(c=>c.id===cv.note.pageColor)||PAGE_COLORS[0];
+  tmpCtx.fillStyle=pgBg.bg;tmpCtx.fillRect(0,0,A4W,A4H);
+  drawPageLinesCtx(tmpCtx,i);
+  (cv.strokes[i]||[]).forEach(s=>drawStrokeCtx(tmpCtx,s,0));
+
+  pdf.addImage(tmpCanvas.toDataURL('image/jpeg',0.92),'JPEG',0,0,210,297);
+  pdf.save((cv.note.title||'Page').replace(/[^a-z0-9]/gi,'_')+'_page'+(i+1)+'.pdf');
+  showToast('bm-toast','✓ Page exported');
+}
 async function getStorageInfo(){
   if(navigator.storage&&navigator.storage.estimate){
     const e=await navigator.storage.estimate();
     return`${(e.usage/1024/1024).toFixed(1)} MB of ${(e.quota/1024/1024).toFixed(0)} MB`;
   }return'unavailable';
 }
-async function exportBackup(){
+async function exportBackup(silent=false){
   clearTimeout(cv.saveTimer);
   if(cv.note&&cv.dirtyPages.size>0)await flushDirtyPages();
-  // Collect all page strokes
   const notesWithStrokes=[];
   for(const n of app.notes){
     const pages=[];
@@ -2385,13 +3398,19 @@ async function exportBackup(){
     }
     notesWithStrokes.push({...n,pages});
   }
-  const payload=JSON.stringify({app:'inkwell',version:10,exportedAt:new Date().toISOString(),folders:app.folders,notes:notesWithStrokes},null,2);
+  const now=new Date();
+  const payload=JSON.stringify({app:'inkwell',version:10,exportedAt:now.toISOString(),folders:app.folders,notes:notesWithStrokes},null,2);
   const blob=new Blob([payload],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;
-  a.download='inkwell-backup-'+new Date().toISOString().slice(0,10)+'.inkwell';
+  // Fixed filename — same name every week so it replaces the previous one
+  // (browsers append numbers if same name exists, but in Files app you can see it's the latest)
+  a.download='inkwell-weekly-backup.inkwell';
   a.click();URL.revokeObjectURL(url);
-  showToast('bm-toast','✦ Backup exported');
+  // Record the backup time
+  localStorage.setItem('inkwell_last_backup',now.toISOString());
+  if(!silent)showToast('bm-toast','✦ Backup exported');
+  return now;
 }
 async function importBackup(){
   const inp=document.createElement('input');inp.type='file';inp.accept='.inkwell,.json';
@@ -2413,6 +3432,86 @@ async function importBackup(){
     }catch(err){showToast('bm-toast','✗ Import failed: '+err.message);}
   };inp.click();
 }
+// ═══════════════════════════════════════════════════════════════
+// WEEKLY AUTO-BACKUP
+// ═══════════════════════════════════════════════════════════════
+const BACKUP_INTERVAL_DAYS=7;
+const BACKUP_KEY='inkwell_last_backup';
+const BACKUP_ENABLED_KEY='inkwell_autobackup_enabled';
+
+function isAutoBackupEnabled(){
+  const val=localStorage.getItem(BACKUP_ENABLED_KEY);
+  return val===null?true:val==='true'; // on by default
+}
+
+function setAutoBackupEnabled(v){
+  localStorage.setItem(BACKUP_ENABLED_KEY,v?'true':'false');
+}
+
+function getLastBackupDate(){
+  const raw=localStorage.getItem(BACKUP_KEY);
+  return raw?new Date(raw):null;
+}
+
+function daysSinceLastBackup(){
+  const last=getLastBackupDate();
+  if(!last)return Infinity;
+  return(Date.now()-last.getTime())/(1000*60*60*24);
+}
+
+function formatLastBackup(){
+  const last=getLastBackupDate();
+  if(!last)return'Never';
+  const days=Math.floor(daysSinceLastBackup());
+  if(days===0)return'Today';
+  if(days===1)return'Yesterday';
+  return days+' days ago';
+}
+
+function nextBackupIn(){
+  const days=daysSinceLastBackup();
+  const remaining=Math.max(0,BACKUP_INTERVAL_DAYS-days);
+  if(remaining<1)return'Due now';
+  return Math.ceil(remaining)+' days';
+}
+
+// Called on app open — checks if weekly backup is due
+async function checkWeeklyBackup(){
+  if(!isAutoBackupEnabled())return;
+  if(!app.notes.length)return; // nothing to back up
+  const days=daysSinceLastBackup();
+  if(days>=BACKUP_INTERVAL_DAYS){
+    // Small delay so app loads fully first
+    setTimeout(async()=>{
+      showWeeklyBackupToast();
+      await exportBackup(true); // silent=true, no extra toast
+    },2000);
+  }
+}
+
+function showWeeklyBackupToast(){
+  // Custom toast for weekly backup — stays longer
+  const el=document.createElement('div');
+  el.style.cssText=`
+    position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    background:var(--s1);border:1px solid var(--gold);
+    color:var(--t1);padding:12px 20px;border-radius:12px;
+    font-size:12px;font-family:'Inter',sans-serif;
+    z-index:700;box-shadow:0 8px 32px rgba(0,0,0,.6);
+    display:flex;align-items:center;gap:12px;
+    animation:slideUp .3s ease;
+  `;
+  el.innerHTML=`
+    <div style="width:8px;height:8px;border-radius:50%;background:var(--gold);flex-shrink:0;"></div>
+    <div>
+      <div style="font-weight:500;color:var(--gold);margin-bottom:2px;">Weekly backup saved</div>
+      <div style="color:var(--t3);font-size:11px;font-family:'JetBrains Mono',monospace;">inkwell-weekly-backup.inkwell → Files → Downloads</div>
+    </div>
+    <div onclick="this.parentElement.remove()" style="color:var(--t3);cursor:pointer;padding:4px;font-size:16px;margin-left:4px;">×</div>
+  `;
+  document.body.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .4s';setTimeout(()=>el.remove(),400);},6000);
+}
 async function clearAllData(){
   if(!confirm('Delete ALL notes and folders? Cannot be undone.'))return;
   app.folders=[];app.notes=[];
@@ -2420,26 +3519,63 @@ async function clearAllData(){
   await idbSet('meta',{folders:[],notes:[]});
   renderHome();showToast('bm-toast','All data deleted');
 }
+
 async function toggleStoragePanel(){
   const existing=document.getElementById('storage-panel');
   if(existing){existing.remove();return;}
   const panel=document.createElement('div');panel.id='storage-panel';
-  panel.style.cssText='position:fixed;bottom:80px;left:228px;width:270px;background:var(--s1);border:1px solid var(--b2);border-radius:var(--r);padding:18px;z-index:500;box-shadow:0 20px 60px rgba(0,0,0,.8);';
+  panel.style.cssText='position:fixed;bottom:80px;left:228px;width:290px;background:var(--s1);border:1px solid var(--b2);border-radius:var(--r);padding:18px;z-index:500;box-shadow:0 20px 60px rgba(0,0,0,.8);animation:fadeUp .18s ease;';
   const info=await getStorageInfo();
+  const autoOn=isAutoBackupEnabled();
+  const lastBk=formatLastBackup();
+  const nextBk=nextBackupIn();
   panel.innerHTML=`
     <div style="font-size:9px;letter-spacing:.12em;color:var(--t4);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:12px;">Offline Storage</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
       <div style="width:7px;height:7px;border-radius:50%;background:#6abf69;box-shadow:0 0 6px #6abf69;flex-shrink:0;"></div>
       <span style="font-size:12px;color:var(--t2);">IndexedDB — fully offline</span>
     </div>
     <div style="font-size:11px;color:var(--t3);font-family:'JetBrains Mono',monospace;background:var(--s2);border-radius:6px;padding:8px 10px;margin-bottom:14px;">${info}</div>
+    <div style="height:1px;background:var(--b1);margin-bottom:12px;"></div>
+    <div style="font-size:9px;letter-spacing:.12em;color:var(--t4);font-family:'JetBrains Mono',monospace;text-transform:uppercase;margin-bottom:10px;">Weekly Auto-Backup</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:12px;color:var(--t2);">Auto-backup every 7 days</span>
+      <div id="sp-tog" onclick="toggleAutoBackupSetting(this)" style="width:32px;height:18px;border-radius:9px;background:${autoOn?'var(--gold)':'var(--s3)'};border:1px solid var(--b2);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;">
+        <div style="position:absolute;top:2px;left:${autoOn?'14':'2'}px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,.4);"></div>
+      </div>
+    </div>
+    <div style="background:var(--s2);border-radius:6px;padding:8px 10px;margin-bottom:10px;font-size:11px;font-family:'JetBrains Mono',monospace;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+        <span style="color:var(--t3);">Last backup</span>
+        <span style="color:var(--t2);">${lastBk}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;">
+        <span style="color:var(--t3);">Next backup</span>
+        <span style="color:${nextBk==='Due now'?'var(--gold)':'var(--t2)'};">${nextBk}</span>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--t4);margin-bottom:14px;line-height:1.55;">Saves as <span style="color:var(--t2);font-family:'JetBrains Mono',monospace;font-size:10px;">inkwell-weekly-backup.inkwell</span> to Downloads. Same filename each time.</div>
     <div style="display:flex;flex-direction:column;gap:7px;">
-      <button onclick="exportBackup()" style="padding:9px 12px;border-radius:7px;border:1px solid var(--b2);background:var(--s2);color:var(--t1);cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;text-align:left;">↓ Export backup (.inkwell)</button>
-      <button onclick="importBackup()" style="padding:9px 12px;border-radius:7px;border:1px solid var(--b2);background:var(--s2);color:var(--t1);cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;text-align:left;">↑ Import backup</button>
+      <button onclick="exportBackup()" style="padding:9px 12px;border-radius:7px;border:1px solid var(--gold);background:var(--gdim);color:var(--gold);cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;text-align:left;font-weight:500;">↓ Backup now</button>
+      <button onclick="exportPDF()" style="padding:9px 12px;border-radius:7px;border:1px solid var(--b2);background:var(--s2);color:var(--t1);cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;text-align:left;">↓ Export notebook as PDF</button>
+      <button onclick="exportPagePDF()" style="padding:9px 12px;border-radius:7px;border:1px solid var(--b2);background:var(--s2);color:var(--t1);cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;text-align:left;">↓ Export current page as PDF</button>
+      <button onclick="importBackup()" style="padding:9px 12px;border-radius:7px;border:1px solid var(--b2);background:var(--s2);color:var(--t1);cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;text-align:left;">↑ Restore from backup</button>
       <button onclick="clearAllData()" style="padding:9px 12px;border-radius:7px;border:1px solid rgba(224,96,96,.3);background:rgba(224,96,96,.08);color:var(--red);cursor:pointer;font-size:12px;font-family:'Inter',sans-serif;text-align:left;">✗ Delete all data</button>
     </div>`;
   document.body.appendChild(panel);
-  setTimeout(()=>{document.addEventListener('click',function h(e){if(!panel.contains(e.target)&&e.target.id!=='storage-btn'){panel.remove();document.removeEventListener('click',h);}});},100);
+  setTimeout(()=>{
+    document.addEventListener('click',function h(e){
+      if(!panel.contains(e.target)&&e.target.id!=='storage-btn'){panel.remove();document.removeEventListener('click',h);}
+    });
+  },100);
+}
+
+function toggleAutoBackupSetting(tog){
+  const newVal=!isAutoBackupEnabled();
+  setAutoBackupEnabled(newVal);
+  tog.style.background=newVal?'var(--gold)':'var(--s3)';
+  tog.querySelector('div').style.left=newVal?'14px':'2px';
+  showToast('bm-toast',newVal?'✦ Auto-backup enabled':'Auto-backup disabled');
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -2470,6 +3606,7 @@ document.addEventListener('keydown',e=>{
     if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key==='z'){e.preventDefault();doUndo();}
     if((e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key==='z'){e.preventDefault();doRedo();}
     if(e.key==='p'||e.key==='P')setTool('pen');
+    if(e.key==='h'||e.key==='H')setTool('hl');
     if(e.key==='e'||e.key==='E'){if(cv.tool==='se')selectEraser('pe');else if(cv.tool==='pe')selectEraser('se');else selectEraser(eraserMode);}
     if(e.key==='s'||e.key==='S')setTool('shape');
     if(e.key==='r'||e.key==='R')toggleRuler();
@@ -2484,14 +3621,39 @@ document.addEventListener('keydown',e=>{
 });
 
 // Pinch to zoom
-let lastPinch=null;
+// ── Two-finger tap = Undo, Three-finger tap = Redo ──
+let multiTouchStartTime=0;
+let multiTouchMoved=false;
+let multiTouchCount=0;
+
 cScroll.addEventListener('touchstart',e=>{
-  if(e.touches.length===2){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;lastPinch=Math.sqrt(dx*dx+dy*dy);}
+  if(e.touches.length===2){
+    const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
+    lastPinch=Math.sqrt(dx*dx+dy*dy);
+    multiTouchStartTime=Date.now();multiTouchMoved=false;multiTouchCount=2;
+  }
+  if(e.touches.length===3){
+    multiTouchStartTime=Date.now();multiTouchMoved=false;multiTouchCount=3;
+  }
 },{passive:true});
 cScroll.addEventListener('touchmove',e=>{
-  if(e.touches.length===2&&lastPinch){const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;const d2=Math.sqrt(dx*dx+dy*dy);zoomBy((d2-lastPinch)/400);lastPinch=d2;}
+  if(e.touches.length===2&&lastPinch){
+    const dx=e.touches[0].clientX-e.touches[1].clientX,dy=e.touches[0].clientY-e.touches[1].clientY;
+    const d2=Math.sqrt(dx*dx+dy*dy);
+    if(Math.abs(d2-lastPinch)>8)multiTouchMoved=true; // finger spread = pinch, not tap
+    zoomBy((d2-lastPinch)/400);lastPinch=d2;
+  }
+  if(e.touches.length>=2)multiTouchMoved=true;
 },{passive:true});
-cScroll.addEventListener('touchend',()=>{lastPinch=null;},{passive:true});
+cScroll.addEventListener('touchend',e=>{
+  const elapsed=Date.now()-multiTouchStartTime;
+  // Short tap (under 200ms) with no movement = undo/redo
+  if(!multiTouchMoved&&elapsed<200&&document.getElementById('canvas-screen').classList.contains('active')){
+    if(multiTouchCount===2){doUndo();triggerHaptic('medium');}
+    if(multiTouchCount===3){doRedo();triggerHaptic('double');}
+  }
+  lastPinch=null;multiTouchCount=0;
+},{passive:true});
 
 // ═══════════════════════════════════════════════════════════════
 // SERVICE WORKER
@@ -2521,20 +3683,32 @@ if('serviceWorker' in navigator){
 // INIT
 // ═══════════════════════════════════════════════════════════════
 (async function init(){
-  // progress bar animation
   const fill=document.getElementById('loading-fill');
-  fill.style.width='30%';
+  const sub=document.getElementById('loading-sub');
+  const overlay=document.getElementById('loading-overlay');
 
-  // open IndexedDB
-  try{idb=await openDB();console.log('%c✦ IndexedDB ready','color:#c8a96e');}
+  // Helper — set progress + message
+  function setProgress(pct,msg,delay=0){
+    return new Promise(res=>setTimeout(()=>{
+      fill.style.width=pct+'%';
+      if(msg&&sub)sub.textContent=msg;
+      res();
+    },delay));
+  }
+
+  // Stage 1 — open immediately, animate in
+  await setProgress(8,'Opening database…',200);
+
+  // Stage 2 — open IndexedDB
+  try{idb=await openDB();}
   catch(e){console.warn('IndexedDB unavailable',e);}
-  fill.style.width='60%';
+  await setProgress(25,'Loading your notes…',300);
 
-  // load data
+  // Stage 3 — load metadata
   const loaded=await loadMeta();
-  fill.style.width='85%';
+  await setProgress(50,'Preparing workspace…',400);
 
-  // seed demo data on first run
+  // Stage 4 — seed or verify data
   if(!loaded||!app.notes.length){
     app.folders=[
       {id:'f1',name:'University',icon:'📘',created:Date.now()-86400000*3},
@@ -2547,17 +3721,29 @@ if('serviceWorker' in navigator){
     ];
     await saveMeta();
   }
-  fill.style.width='100%';
+  await setProgress(72,'Setting up your library…',500);
 
-  // hide loading, show home
-  setTimeout(()=>{
-    document.getElementById('loading-overlay').style.opacity='0';
-    document.getElementById('loading-overlay').style.transition='opacity .3s';
-    setTimeout(()=>{document.getElementById('loading-overlay').style.display='none';},300);
-    document.getElementById('home').classList.add('active');
-  },300);
-
+  // Stage 5 — render home (happens in background while screen still shows)
   renderHome();populateFolderSelect();
+  await setProgress(88,'Almost ready…',600);
+
+  // Stage 6 — check weekly backup
+  await checkWeeklyBackup();
+  await setProgress(100,'Welcome back ✦',500);
+
+  // Wait to fill to 5 seconds total from page load
+  // We've used ~2.5s above, pad remaining time
+  const elapsed=performance.now();
+  const TARGET=5000; // 5 seconds
+  const remaining=Math.max(400,TARGET-elapsed);
+
+  setTimeout(()=>{
+    overlay.style.opacity='0';
+    setTimeout(()=>{
+      overlay.style.display='none';
+      document.getElementById('home').classList.add('active');
+    },600);
+  },remaining);
 })();
 </script>
 </body>
