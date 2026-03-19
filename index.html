@@ -1,0 +1,2813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Inkwell">
+<meta name="application-name" content="Inkwell">
+<meta name="theme-color" content="#0d0d0f">
+<meta name="description" content="Premium iPad note-taking app — write, sketch, organise.">
+
+<!-- PWA Manifest (inline as data URI so single-file deploy works too) -->
+<link rel="manifest" href="manifest.json">
+
+<!-- Apple touch icons (inline SVG as data URI) -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='112' fill='%230d0d0f'/%3E%3Ctext x='256' y='340' text-anchor='middle' font-family='Georgia,serif' font-size='280' fill='%23c9a96e'%3E✦%3C/text%3E%3C/svg%3E">
+
+<title>Inkwell</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+:root{
+  --bg:#0d0d0f;
+  --bg2:#121214;
+  --surface:#18181c;
+  --surface2:#1e1e24;
+  --surface3:#25252d;
+  --surface4:#2c2c36;
+  --border:rgba(255,255,255,0.055);
+  --border2:rgba(255,255,255,0.10);
+  --border3:rgba(255,255,255,0.16);
+  --text:#ede9e3;
+  --text2:#9a97a3;
+  --text3:#55535e;
+  --text4:#38363f;
+  --gold:#c9a96e;
+  --gold2:#e8cc9a;
+  --gold-dim:rgba(201,169,110,0.12);
+  --gold-glow:rgba(201,169,110,0.22);
+  --radius:14px;
+  --radius-sm:8px;
+  --rail:64px;
+  --sidebar:96px;
+  --A4W:794;
+  --A4H:1123;
+}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;font-size:15px;}
+
+/* ═══════════════════════════════ SCREENS ═══════════════════════════════ */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;animation:fadeIn .28s ease;}
+.screen.active{display:flex;}
+@keyframes fadeIn{from{opacity:0;transform:scale(0.985);}to{opacity:1;transform:scale(1);}}
+@keyframes slideUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:translateY(0);}}
+@keyframes slideDown{from{opacity:0;transform:translateY(-16px);}to{opacity:1;transform:translateY(0);}}
+
+/* ═══════════════════════════════ HOME SCREEN ═══════════════════════════ */
+#home{background:var(--bg);}
+#home-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:28px 36px 20px;
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+}
+.home-logo{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--gold);letter-spacing:.04em;}
+.home-logo span{color:var(--text3);font-size:13px;font-family:'DM Mono',monospace;font-weight:300;margin-left:10px;letter-spacing:.08em;}
+.header-actions{display:flex;gap:10px;}
+
+.btn-icon{
+  display:flex;align-items:center;justify-content:center;
+  width:44px;height:44px;border-radius:var(--radius-sm);
+  border:1px solid var(--border2);background:var(--surface2);
+  color:var(--text2);cursor:pointer;transition:all .18s;
+}
+.btn-icon:hover{border-color:var(--border3);color:var(--text);background:var(--surface3);}
+.btn-icon svg{width:19px;height:19px;}
+
+#home-body{display:flex;flex:1;overflow:hidden;}
+#home-nav{
+  width:220px;flex-shrink:0;
+  border-right:1px solid var(--border);
+  padding:24px 0;
+  display:flex;flex-direction:column;gap:2px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:11px;
+  padding:11px 20px;cursor:pointer;
+  color:var(--text2);font-size:14px;
+  border-radius:0;transition:all .15s;
+  border-left:2px solid transparent;
+}
+.nav-item:hover{color:var(--text);background:var(--surface);}
+.nav-item.active{color:var(--gold);border-left-color:var(--gold);background:var(--gold-dim);}
+.nav-item svg{width:17px;height:17px;flex-shrink:0;}
+.nav-sep{height:1px;background:var(--border);margin:10px 16px;}
+.nav-label{padding:8px 20px 4px;font-size:10px;letter-spacing:.12em;color:var(--text4);font-family:'DM Mono',monospace;text-transform:uppercase;}
+
+#home-content{flex:1;overflow-y:auto;padding:28px 36px;}
+#home-content::-webkit-scrollbar{width:4px;}
+#home-content::-webkit-scrollbar-thumb{background:var(--surface4);border-radius:2px;}
+
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.section-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:var(--text);}
+.btn-new{
+  display:flex;align-items:center;gap:8px;
+  padding:9px 18px;border-radius:var(--radius-sm);
+  background:var(--gold);color:#0d0d0f;
+  border:none;cursor:pointer;font-size:13px;font-weight:500;
+  font-family:'DM Sans',sans-serif;
+  transition:all .18s;
+}
+.btn-new:hover{background:var(--gold2);}
+.btn-new svg{width:15px;height:15px;}
+
+/* Folders grid */
+.folders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;margin-bottom:40px;}
+.folder-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:var(--radius);padding:20px 16px 16px;
+  cursor:pointer;transition:all .2s;
+  display:flex;flex-direction:column;gap:12px;
+  position:relative;overflow:hidden;
+}
+.folder-card::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,transparent 60%,rgba(255,255,255,0.02));
+  pointer-events:none;
+}
+.folder-card:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,0,0,0.4);}
+.folder-card:active{transform:translateY(0);}
+.folder-icon{font-size:28px;line-height:1;}
+.folder-name{font-size:14px;font-weight:500;color:var(--text);}
+.folder-meta{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.folder-preview{
+  display:flex;gap:3px;margin-top:4px;
+}
+.folder-preview-pg{
+  flex:1;height:40px;border-radius:4px;
+  background:var(--surface3);border:1px solid var(--border);
+  position:relative;overflow:hidden;
+}
+.folder-preview-pg canvas{width:100%;height:100%;display:block;}
+
+/* Notes grid */
+.notes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:18px;}
+.note-card{
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius);overflow:hidden;
+  cursor:pointer;transition:all .2s;
+  display:flex;flex-direction:column;
+}
+.note-card:hover{border-color:var(--border2);transform:translateY(-3px);box-shadow:0 16px 40px rgba(0,0,0,0.5);}
+.note-thumb{
+  aspect-ratio:210/160;background:var(--surface2);
+  position:relative;overflow:hidden;
+}
+.note-thumb canvas{width:100%;height:100%;display:block;}
+.note-info{padding:12px 14px;}
+.note-title{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.note-meta{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+.note-pages-badge{
+  position:absolute;bottom:8px;right:8px;
+  background:rgba(0,0,0,0.6);backdrop-filter:blur(6px);
+  border:1px solid var(--border2);border-radius:20px;
+  padding:2px 8px;font-size:10px;font-family:'DM Mono',monospace;
+  color:var(--text2);
+}
+
+/* ═══════════════════════════════ MODALS ═══════════════════════════════ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
+  z-index:1000;display:none;align-items:flex-end;justify-content:center;
+}
+.modal-overlay.open{display:flex;animation:fadeIn .2s ease;}
+.modal-sheet{
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:24px 24px 0 0;
+  width:100%;max-width:680px;
+  padding:32px;
+  animation:slideUp .3s cubic-bezier(.34,1.56,.64,1);
+}
+.modal-handle{width:40px;height:4px;background:var(--surface4);border-radius:2px;margin:0 auto 28px;}
+.modal-title{font-family:'Cormorant Garamond',serif;font-size:26px;font-weight:400;color:var(--text);margin-bottom:24px;}
+.modal-field{margin-bottom:20px;}
+.modal-label{font-size:11px;letter-spacing:.1em;color:var(--text3);font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:8px;display:block;}
+.modal-input{
+  width:100%;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:var(--radius-sm);padding:12px 16px;
+  color:var(--text);font-size:15px;font-family:'DM Sans',sans-serif;
+  outline:none;transition:border-color .15s;
+}
+.modal-input:focus{border-color:var(--gold);}
+
+/* emoji picker */
+.emoji-grid{display:flex;flex-wrap:wrap;gap:8px;}
+.emoji-opt{
+  width:44px;height:44px;border-radius:var(--radius-sm);
+  border:1px solid var(--border);background:var(--surface2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;cursor:pointer;transition:all .15s;
+}
+.emoji-opt:hover,.emoji-opt.active{border-color:var(--gold);background:var(--gold-dim);}
+
+/* page style picker */
+.style-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+.style-opt{
+  border:1px solid var(--border);border-radius:var(--radius-sm);
+  background:var(--surface2);padding:12px 8px 10px;
+  cursor:pointer;transition:all .15s;text-align:center;
+  display:flex;flex-direction:column;align-items:center;gap:8px;
+}
+.style-opt:hover,.style-opt.active{border-color:var(--gold);background:var(--gold-dim);}
+.style-preview{width:48px;height:60px;border-radius:4px;background:#f5f2ec;border:1px solid rgba(0,0,0,0.1);overflow:hidden;position:relative;}
+.style-preview svg{width:100%;height:100%;}
+.style-name{font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;}
+
+/* page color picker */
+.pagecolor-grid{display:flex;gap:10px;}
+.pagecolor-opt{
+  width:44px;height:44px;border-radius:var(--radius-sm);
+  border:2px solid transparent;cursor:pointer;
+  transition:all .15s;
+}
+.pagecolor-opt:hover,.pagecolor-opt.active{border-color:var(--gold);transform:scale(1.1);}
+
+.modal-actions{display:flex;gap:12px;margin-top:28px;justify-content:flex-end;}
+.btn-cancel{
+  padding:12px 24px;border-radius:var(--radius-sm);
+  border:1px solid var(--border2);background:transparent;
+  color:var(--text2);cursor:pointer;font-size:14px;
+  font-family:'DM Sans',sans-serif;transition:all .15s;
+}
+.btn-cancel:hover{color:var(--text);border-color:var(--border3);}
+.btn-confirm{
+  padding:12px 28px;border-radius:var(--radius-sm);
+  border:none;background:var(--gold);
+  color:#0d0d0f;cursor:pointer;font-size:14px;font-weight:500;
+  font-family:'DM Sans',sans-serif;transition:all .15s;
+}
+.btn-confirm:hover{background:var(--gold2);}
+
+/* ═══════════════════════════════ CANVAS SCREEN ═══════════════════════ */
+#canvas-screen{background:var(--bg);flex-direction:row;}
+
+/* Left rail */
+#rail{
+  width:var(--rail);flex-shrink:0;
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  align-items:center;padding:16px 0;
+  gap:4px;z-index:10;
+}
+.rail-btn{
+  width:44px;height:44px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  border:none;background:transparent;
+  color:var(--text3);cursor:pointer;
+  transition:all .15s;position:relative;
+  flex-shrink:0;
+}
+.rail-btn:hover{background:var(--surface2);color:var(--text2);}
+.rail-btn.active{background:var(--gold-dim);color:var(--gold);}
+.rail-btn svg{width:20px;height:20px;}
+.rail-sep{width:32px;height:1px;background:var(--border);margin:6px 0;flex-shrink:0;}
+
+/* Thickness slider - vertical */
+#thickness-rail{
+  display:flex;flex-direction:column;align-items:center;gap:6px;
+  padding:6px 0;
+}
+.thick-btn{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;border:none;background:transparent;
+}
+.thick-btn:hover{background:var(--surface2);}
+.thick-btn.active{background:var(--gold-dim);}
+.thick-dot-ui{border-radius:50%;background:var(--text3);transition:all .15s;}
+.thick-btn.active .thick-dot-ui{background:var(--gold);}
+
+/* Color swatch on rail */
+#rail-color{
+  width:30px;height:30px;border-radius:50%;
+  border:2px solid var(--border2);cursor:pointer;
+  transition:all .15s;flex-shrink:0;
+  box-shadow:0 0 0 1px rgba(0,0,0,0.4);
+}
+#rail-color:hover{transform:scale(1.1);border-color:var(--border3);}
+
+/* ── CANVAS AREA ── */
+#canvas-area{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column;}
+#canvas-topbar{
+  height:52px;flex-shrink:0;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:8px;
+  padding:0 16px;
+}
+.topbar-back{
+  display:flex;align-items:center;gap:6px;
+  color:var(--text2);font-size:13px;cursor:pointer;
+  padding:6px 10px;border-radius:var(--radius-sm);
+  border:none;background:transparent;transition:all .15s;
+  font-family:'DM Sans',sans-serif;
+}
+.topbar-back:hover{color:var(--text);background:var(--surface2);}
+.topbar-back svg{width:16px;height:16px;}
+.topbar-title{font-size:15px;font-weight:500;color:var(--text);flex:1;text-align:center;font-family:'Cormorant Garamond',serif;font-size:18px;}
+.topbar-zoom{
+  font-family:'DM Mono',monospace;font-size:12px;
+  color:var(--text3);background:var(--surface2);
+  border:1px solid var(--border);border-radius:6px;
+  padding:4px 10px;cursor:pointer;transition:all .15s;border:none;
+  font-family:'DM Mono',monospace;
+}
+.topbar-zoom:hover{color:var(--text2);}
+.topbar-zoombtns{display:flex;gap:2px;}
+.topbar-zoombtn{
+  width:32px;height:32px;border-radius:6px;
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--text3);cursor:pointer;transition:all .15s;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.topbar-zoombtn:hover{color:var(--text);border-color:var(--border2);}
+
+#canvas-scroll{flex:1;overflow:auto;position:relative;}
+#canvas-scroll::-webkit-scrollbar{width:5px;height:5px;}
+#canvas-scroll::-webkit-scrollbar-thumb{background:var(--surface4);border-radius:3px;}
+#canvas-inner{position:relative;transform-origin:top left;display:inline-block;}
+#drawing-canvas{display:block;touch-action:none;}
+
+/* page overlays */
+.pg-break{
+  position:absolute;left:0;right:0;pointer-events:none;z-index:4;
+  height:24px;
+  background:var(--bg);
+  border-top:2px solid rgba(201,169,110,0.6);
+  border-bottom:2px solid rgba(201,169,110,0.6);
+}
+.pg-num{
+  position:absolute;right:16px;
+  font-family:'DM Mono',monospace;font-size:12px;font-weight:500;
+  color:rgba(201,169,110,0.9);
+  pointer-events:none;z-index:6;
+  background:rgba(13,13,15,0.85);
+  padding:2px 8px 3px;border-radius:0 0 6px 6px;
+  border:1px solid rgba(201,169,110,0.35);
+  border-top:none;letter-spacing:.05em;
+}
+
+/* ── RIGHT SIDEBAR ── */
+#snap-sidebar{
+  width:var(--sidebar);flex-shrink:0;
+  background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#snap-header{
+  padding:12px 6px 8px;border-bottom:1px solid var(--border);
+  text-align:center;flex-shrink:0;
+}
+#snap-header span{font-size:9px;letter-spacing:.14em;color:var(--text4);font-family:'DM Mono',monospace;text-transform:uppercase;}
+#snap-list{flex:1;overflow-y:auto;padding:8px 6px;display:flex;flex-direction:column;gap:8px;}
+#snap-list::-webkit-scrollbar{width:2px;}
+#snap-list::-webkit-scrollbar-thumb{background:var(--surface4);}
+.snap-item{
+  position:relative;cursor:pointer;border-radius:5px;
+  border:2px solid transparent;transition:all .15s;
+  overflow:hidden;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+}
+.snap-item:hover{border-color:var(--border2);}
+.snap-item.active{border-color:var(--gold);}
+.snap-canvas{
+  width:100%;aspect-ratio:210/297;display:block;
+  border-radius:3px;overflow:hidden;
+}
+.snap-canvas canvas{width:100%;height:100%;display:block;}
+.snap-pgnum{
+  font-size:9px;font-family:'DM Mono',monospace;
+  color:var(--text3);padding-bottom:2px;
+}
+#snap-add{
+  margin:6px;border-radius:6px;height:28px;
+  border:1px dashed var(--border2);background:transparent;
+  color:var(--text4);cursor:pointer;font-size:16px;
+  transition:all .15s;flex-shrink:0;
+}
+#snap-add:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim);}
+
+/* ── COLOR PALETTE PANEL ── */
+#palette-panel{
+  position:fixed;left:72px;bottom:80px;
+  width:280px;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:16px;
+  z-index:200;display:none;
+  box-shadow:0 24px 64px rgba(0,0,0,0.6);
+  animation:slideUp .2s ease;
+}
+#palette-panel.open{display:block;}
+.palette-section{margin-bottom:14px;}
+.palette-sec-label{font-size:9px;letter-spacing:.12em;color:var(--text4);font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:8px;}
+.palette-row{display:flex;flex-wrap:wrap;gap:5px;}
+.pal-swatch{
+  width:24px;height:24px;border-radius:50%;cursor:pointer;
+  border:1.5px solid transparent;transition:all .15s;
+  flex-shrink:0;
+}
+.pal-swatch:hover{transform:scale(1.2);border-color:rgba(255,255,255,0.3);}
+.pal-swatch.active{border-color:#fff;transform:scale(1.15);box-shadow:0 0 0 2px var(--gold);}
+.palette-custom{display:flex;gap:8px;align-items:center;margin-top:10px;}
+.custom-color-input{
+  width:36px;height:36px;border-radius:50%;border:none;
+  cursor:pointer;padding:0;background:none;overflow:hidden;
+}
+.custom-color-input::-webkit-color-swatch-wrapper{padding:0;}
+.custom-color-input::-webkit-color-swatch{border:none;border-radius:50%;}
+.palette-hex{
+  flex:1;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:6px;padding:6px 10px;
+  color:var(--text);font-size:12px;font-family:'DM Mono',monospace;
+  outline:none;
+}
+.palette-hex:focus{border-color:var(--gold);}
+
+/* ── PALM INDICATOR ── */
+#palm-toast{
+  position:fixed;top:70px;left:50%;transform:translateX(-50%);
+  background:rgba(112,144,224,0.15);border:1px solid rgba(112,144,224,0.3);
+  color:#7ea8e8;padding:5px 16px;border-radius:20px;
+  font-size:11px;font-family:'DM Mono',monospace;
+  pointer-events:none;opacity:0;transition:opacity .3s;z-index:500;
+}
+#palm-toast.show{opacity:1;}
+#mode-toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--surface);border:1px solid var(--border2);
+  color:var(--text2);padding:7px 18px;border-radius:20px;
+  font-size:12px;font-family:'DM Mono',monospace;
+  pointer-events:none;opacity:0;transition:opacity .3s;z-index:500;
+}
+#mode-toast.show{opacity:1;}
+#eraser-ring{
+  position:fixed;border:1.5px solid rgba(255,255,255,0.45);
+  border-radius:50%;pointer-events:none;z-index:600;
+  display:none;transform:translate(-50%,-50%);
+}
+#autopg-toast{
+  position:fixed;bottom:60px;right:116px;
+  background:var(--gold-dim);border:1px solid var(--gold);
+  color:var(--gold);padding:6px 16px;border-radius:20px;
+  font-size:11px;font-family:'DM Mono',monospace;
+  pointer-events:none;opacity:0;transition:opacity .4s;z-index:500;
+}
+#autopg-toast.show{opacity:1;}
+
+/* ── SHAPE SNAP PREVIEW ── */
+#shape-snap-preview{position:fixed;pointer-events:none;z-index:400;border:2px dashed rgba(201,169,110,0.7);border-radius:2px;display:none;transition:all 0.08s ease;box-shadow:0 0 0 1px rgba(201,169,110,0.2);}
+#shape-label-toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.4);color:var(--gold2);padding:5px 16px;border-radius:20px;font-size:12px;font-family:'DM Mono',monospace;pointer-events:none;opacity:0;transition:opacity .25s;z-index:500;}
+#shape-label-toast.show{opacity:1;}
+@keyframes snapFlash{0%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.04);}100%{opacity:0;transform:scale(1);}}
+.snap-flash{animation:snapFlash 0.35s ease forwards;}
+
+/* ── RULER ── */
+#ruler-svg{user-select:none;}
+
+/* ── WRITING COMFORT PANEL ── */
+#comfort-panel{
+  position:fixed;left:72px;top:58px;width:256px;
+  background:var(--surface);border:1px solid var(--border2);
+  border-radius:var(--radius);padding:16px;z-index:300;
+  display:none;box-shadow:0 24px 64px rgba(0,0,0,0.7);
+  animation:slideUp .2s ease;
+}
+#comfort-panel.open{display:block;}
+.cp-title{font-size:10px;letter-spacing:.12em;color:var(--text4);font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:12px;}
+.cp-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;font-size:13px;color:var(--text2);}
+.cp-sep{height:1px;background:var(--border);margin:10px 0 14px;}
+/* toggle switch */
+.tog{width:34px;height:20px;border-radius:10px;background:var(--surface3);border:1px solid var(--border2);position:relative;cursor:pointer;transition:background .2s;flex-shrink:0;}
+.tog.on{background:var(--gold);}
+.tok{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,0.4);}
+.tog.on .tok{transform:translateX(14px);}
+
+/* ── WRIST GUARD ── */
+#wrist-guard{
+  position:fixed;bottom:0;left:var(--rail);right:var(--sidebar);
+  height:20%;pointer-events:none;z-index:50;display:none;
+  border-top:1px dashed rgba(201,169,110,0.18);
+  background:rgba(201,169,110,0.025);
+}
+/* ── MARGIN LINE ── */
+#margin-line{
+  position:absolute;top:0;bottom:0;width:1.5px;
+  background:rgba(200,60,60,0.25);pointer-events:none;z-index:6;
+  display:none;left:119px;
+}
+/* ── BOOKMARK TOAST ── */
+#bookmark-toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:var(--gold-dim);border:1px solid var(--gold);
+  color:var(--gold);padding:6px 16px;border-radius:20px;
+  font-size:11px;font-family:'DM Mono',monospace;
+  pointer-events:none;opacity:0;transition:opacity .3s;z-index:500;
+}
+#bookmark-toast.show{opacity:1;}
+
+/* ── TAG PILLS ── */
+.tag-pill{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:20px;
+  background:var(--surface3);border:1px solid var(--border2);
+  font-size:12px;font-family:'DM Mono',monospace;color:var(--text2);
+  cursor:default;
+}
+.tag-pill .rm{cursor:pointer;color:var(--text3);font-size:14px;line-height:1;}
+.tag-pill .rm:hover{color:var(--red);}
+
+/* nav tag section */
+.nav-tag{
+  display:flex;align-items:center;gap:8px;padding:9px 20px;cursor:pointer;
+  color:var(--text2);font-size:13px;border-left:2px solid transparent;
+  transition:all .15s;
+}
+.nav-tag:hover{color:var(--text);background:var(--surface);}
+.nav-tag.active{color:var(--gold);border-left-color:var(--gold);background:var(--gold-dim);}
+.tag-dot{width:7px;height:7px;border-radius:50%;background:var(--gold);flex-shrink:0;}
+
+/* snap thumb bookmark corner */
+.snap-item .bk-corner{
+  position:absolute;top:0;right:0;width:0;height:0;
+  border-top:14px solid var(--gold);border-left:14px solid transparent;
+  display:none;
+}
+.snap-item.bookmarked .bk-corner{display:block;}
+
+/* presentation exit hover */
+#present-screen:hover #present-exit,
+#present-screen:hover #present-prev,
+#present-screen:hover #present-next{opacity:1!important;}
+
+/* topbar present button */
+.topbar-present-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 12px;border-radius:var(--radius-sm);
+  border:1px solid var(--border2);background:var(--surface2);
+  color:var(--text2);cursor:pointer;font-size:12px;
+  font-family:'DM Mono',monospace;transition:all .15s;letter-spacing:.04em;
+}
+.topbar-present-btn:hover{color:var(--gold);border-color:var(--gold);background:var(--gold-dim);}
+.topbar-present-btn svg{width:14px;height:14px;}
+
+/* ── TOOLTIP ── */
+.rtip{
+  position:absolute;left:calc(100% + 10px);top:50%;transform:translateY(-50%);
+  background:var(--surface3);border:1px solid var(--border2);
+  color:var(--text2);padding:4px 10px;border-radius:6px;
+  font-size:11px;white-space:nowrap;pointer-events:none;
+  opacity:0;transition:opacity .15s;z-index:300;font-family:'DM Mono',monospace;
+}
+.rail-btn:hover .rtip,.thick-btn:hover .rtip{opacity:1;}
+
+/* empty state */
+.empty-state{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:12px;padding:60px 20px;color:var(--text3);
+}
+.empty-state svg{width:40px;height:40px;opacity:.4;}
+.empty-state p{font-size:14px;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ HOME SCREEN ═══════════════ -->
+<div id="home" class="screen active">
+  <div id="home-header">
+    <div>
+      <div class="home-logo">Inkwell <span>for iPad</span></div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" id="storage-btn" onclick="toggleStoragePanel()" title="Offline Storage">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      </button>
+      <button class="btn-icon" onclick="openFolderModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/><line x1="12" y1="11" x2="12" y2="17"/><line x1="9" y1="14" x2="15" y2="14"/></svg>
+      </button>
+      <button class="btn-icon" onclick="openNoteModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      </button>
+    </div>
+  </div>
+  <div id="home-body">
+    <div id="home-nav">
+      <div class="nav-item active" onclick="setNavActive(this,'all')" data-view="all">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        All Notes
+      </div>
+      <div class="nav-item" onclick="setNavActive(this,'recent')" data-view="recent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Recent
+      </div>
+      <div class="nav-sep"></div>
+      <div class="nav-label">Folders</div>
+      <div id="nav-folders"></div>
+      <div id="nav-tag-section"></div>
+    </div>
+    <div id="home-content">
+      <div class="section-header">
+        <div class="section-title">Folders</div>
+        <button class="btn-new" onclick="openFolderModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Folder
+        </button>
+      </div>
+      <div class="folders-grid" id="folders-grid"></div>
+      <div class="section-header">
+        <div class="section-title">Notes</div>
+        <button class="btn-new" onclick="openNoteModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          New Note
+        </button>
+      </div>
+      <div class="notes-grid" id="notes-grid">
+        <div class="empty-state" style="grid-column:1/-1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <p>No notes yet. Create your first note.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ CANVAS SCREEN ═══════════════ -->
+<div id="canvas-screen" class="screen">
+  <div id="rail">
+    <!-- Back -->
+    <button class="rail-btn" onclick="goHome()" style="margin-bottom:4px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      <span class="rtip">Home</span>
+    </button>
+    <div class="rail-sep"></div>
+    <!-- Tools -->
+    <button class="rail-btn active" id="rb-pen" onclick="setTool('pen')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><circle cx="11" cy="11" r="2"/></svg>
+      <span class="rtip">Pen (P)</span>
+    </button>
+    <button class="rail-btn" id="rb-se" onclick="setTool('se')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20H7L3 16l13-13 4 4-6.5 6.5"/><path d="M6.5 17.5l4-4"/></svg>
+      <span class="rtip">Stroke Eraser (E)</span>
+    </button>
+    <button class="rail-btn" id="rb-pe" onclick="setTool('pe')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="8" height="8" rx="1"/><path d="M11 3l10 10-7 7-10-10z"/></svg>
+      <span class="rtip">Pixel Eraser (X)</span>
+    </button>
+    <button class="rail-btn" id="rb-shape" onclick="setTool('shape')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><rect x="2" y="2" width="6" height="6" rx="1"/><polygon points="22,2 18,10 26,10" transform="translate(-4,0)"/></svg>
+      <span class="rtip">Shape (S)</span>
+    </button>
+    <button class="rail-btn" id="rb-ruler" onclick="toggleRuler()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="8" width="22" height="8" rx="2"/><line x1="6" y1="8" x2="6" y2="13"/><line x1="10" y1="8" x2="10" y2="11"/><line x1="14" y1="8" x2="14" y2="13"/><line x1="18" y1="8" x2="18" y2="11"/></svg>
+      <span class="rtip">Ruler (R)</span>
+    </button>
+    <div class="rail-sep"></div>
+    <!-- Thickness -->
+    <div id="thickness-rail">
+      <div class="thick-btn active" data-t="1" onclick="setThick(1,this)"><div class="thick-dot-ui" style="width:3px;height:3px"></div><span class="rtip">Thin (1)</span></div>
+      <div class="thick-btn" data-t="2" onclick="setThick(2,this)"><div class="thick-dot-ui" style="width:5px;height:5px"></div><span class="rtip">Fine (2)</span></div>
+      <div class="thick-btn" data-t="3" onclick="setThick(3,this)"><div class="thick-dot-ui" style="width:8px;height:8px"></div><span class="rtip">Medium (3)</span></div>
+      <div class="thick-btn" data-t="4" onclick="setThick(4,this)"><div class="thick-dot-ui" style="width:11px;height:11px"></div><span class="rtip">Thick (4)</span></div>
+      <div class="thick-btn" data-t="5" onclick="setThick(5,this)"><div class="thick-dot-ui" style="width:15px;height:15px"></div><span class="rtip">Bold (5)</span></div>
+    </div>
+    <div class="rail-sep"></div>
+    <!-- Color -->
+    <div id="rail-color" onclick="togglePalette()"></div>
+    <div class="rail-sep"></div>
+    <!-- Undo / Redo -->
+    <button class="rail-btn" onclick="doUndo()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+      <span class="rtip">Undo (⌘Z)</span>
+    </button>
+    <button class="rail-btn" onclick="doRedo()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 14 20 9 15 4"/><path d="M4 20v-7a4 4 0 0 1 4-4h12"/></svg>
+      <span class="rtip">Redo (⌘⇧Z)</span>
+    </button>
+    <div class="rail-sep"></div>
+    <button class="rail-btn" onclick="bookmarkCurrentPage()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      <span class="rtip">Bookmark page (B)</span>
+    </button>
+    <button class="rail-btn" onclick="openTagModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span class="rtip">Tags (T)</span>
+    </button>
+  </div>
+
+  <!-- Canvas -->
+  <div id="canvas-area">
+    <div id="canvas-topbar">
+      <button class="topbar-back" onclick="goHome()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Library
+      </button>
+      <div class="topbar-title" id="canvas-title">Untitled</div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button class="topbar-present-btn" onclick="enterPresent()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Present
+        </button>
+        <button class="topbar-present-btn" onclick="toggleComfortPanel()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/><path d="M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+          Comfort
+        </button>
+        <div class="topbar-zoombtns">
+          <button class="topbar-zoombtn" onclick="zoomBy(-0.15)">−</button>
+          <button class="topbar-zoombtn" style="min-width:52px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text3)" id="zoom-label" onclick="zoomReset()">100%</button>
+          <button class="topbar-zoombtn" onclick="zoomBy(0.15)">+</button>
+        </div>
+      </div>
+    </div>
+    <div id="canvas-scroll">
+      <div id="canvas-inner">
+        <canvas id="drawing-canvas"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right sidebar -->
+  <div id="snap-sidebar">
+    <div id="snap-header"><span>Pages</span></div>
+    <div id="snap-list"></div>
+    <button id="snap-add" onclick="addPage()">+</button>
+  </div>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+<!-- Folder modal -->
+<div class="modal-overlay" id="folder-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">New Folder</div>
+    <div class="modal-field">
+      <label class="modal-label">Folder Name</label>
+      <input class="modal-input" id="folder-name-input" placeholder="e.g. Physics Notes" maxlength="32">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Icon</label>
+      <div class="emoji-grid" id="emoji-grid"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('folder-modal')">Cancel</button>
+      <button class="btn-confirm" onclick="createFolder()">Create Folder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Note modal -->
+<div class="modal-overlay" id="note-modal">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">New Note</div>
+    <div class="modal-field">
+      <label class="modal-label">Title</label>
+      <input class="modal-input" id="note-title-input" placeholder="Untitled" maxlength="48">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Page Style</label>
+      <div class="style-grid" id="style-grid"></div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Page Color</label>
+      <div class="pagecolor-grid" id="pagecolor-grid"></div>
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Folder</label>
+      <select class="modal-input" id="note-folder-select" style="cursor:pointer">
+        <option value="">No folder</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('note-modal')">Cancel</button>
+      <button class="btn-confirm" onclick="createNote()">Create Note</button>
+    </div>
+  </div>
+</div>
+
+<!-- Color palette panel -->
+<div id="palette-panel"></div>
+
+<!-- ═══ PRESENTATION SCREEN ═══ -->
+<div id="present-screen" class="screen" style="background:#000;justify-content:center;align-items:center;">
+  <canvas id="present-canvas" style="max-width:100vw;max-height:100vh;object-fit:contain;display:block;"></canvas>
+  <div id="present-hint" style="position:fixed;bottom:28px;left:50%;transform:translateX(-50%);color:rgba(255,255,255,0.28);font-family:'DM Mono',monospace;font-size:12px;pointer-events:none;transition:opacity .5s;white-space:nowrap;">← swipe or arrow keys · tap to toggle UI · ESC to exit</div>
+  <div id="present-counter" style="position:fixed;bottom:28px;right:36px;color:rgba(255,255,255,0.22);font-family:'DM Mono',monospace;font-size:13px;pointer-events:none;"></div>
+  <button id="present-exit" onclick="exitPresent()" style="position:fixed;top:20px;right:20px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.18);color:rgba(255,255,255,0.5);border-radius:8px;padding:8px 18px;cursor:pointer;font-family:'DM Mono',monospace;font-size:12px;opacity:0;transition:opacity .3s;letter-spacing:.06em;">✕ EXIT</button>
+  <button onclick="presentPrev()" style="position:fixed;left:20px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.4);border-radius:50%;width:48px;height:48px;cursor:pointer;font-size:20px;opacity:0;transition:opacity .3s;" id="present-prev">‹</button>
+  <button onclick="presentNext()" style="position:fixed;right:20px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.4);border-radius:50%;width:48px;height:48px;cursor:pointer;font-size:20px;opacity:0;transition:opacity .3s;" id="present-next">›</button>
+</div>
+
+<!-- ═══ TAG MODAL ═══ -->
+<div class="modal-overlay" id="tag-modal">
+  <div class="modal-sheet" style="max-width:480px;">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Tags</div>
+    <div class="modal-field">
+      <label class="modal-label">Add tag</label>
+      <div style="display:flex;gap:8px;">
+        <input class="modal-input" id="tag-input" placeholder="#physics" maxlength="24" style="flex:1;" onkeydown="if(event.key==='Enter')addTag()">
+        <button class="btn-confirm" style="padding:12px 18px;" onclick="addTag()">Add</button>
+      </div>
+    </div>
+    <div class="modal-field"><label class="modal-label">Current tags</label>
+      <div id="tag-list" style="display:flex;flex-wrap:wrap;gap:8px;min-height:36px;"></div>
+    </div>
+    <div class="modal-actions"><button class="btn-confirm" onclick="closeModal('tag-modal')">Done</button></div>
+  </div>
+</div>
+
+<!-- ═══ WRITING COMFORT PANEL ═══ -->
+<div id="comfort-panel">
+  <div class="cp-title">Writing Comfort</div>
+  <div class="cp-row"><span>Wrist Guard</span><div class="tog" id="tog-wrist" onclick="toggleComfort('wrist')"><div class="tok"></div></div></div>
+  <div class="cp-row"><span>Margin Line</span><div class="tog" id="tog-margin" onclick="toggleComfort('margin')"><div class="tok"></div></div></div>
+  <div class="cp-row"><span>Baseline Snap</span><div class="tog" id="tog-bsnap" onclick="toggleComfort('bsnap')"><div class="tok"></div></div></div>
+  <div class="cp-row"><span>Auto-scroll</span><div class="tog on" id="tog-ascroll" onclick="toggleComfort('ascroll')"><div class="tok"></div></div></div>
+  <div class="cp-row">
+    <span>Ink Stabilizer</span>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <input type="range" id="stab-range" min="0" max="8" value="0" style="width:70px;accent-color:var(--gold);" oninput="setStabilizer(+this.value)">
+      <span id="stab-val" style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);min-width:10px;">0</span>
+    </div>
+  </div>
+  <div class="cp-sep"></div>
+  <div class="cp-title" style="margin-top:0;">Page Intelligence</div>
+  <div class="cp-row"><span>Writing Guides</span><div class="tog" id="tog-guides" onclick="toggleComfort('guides')"><div class="tok"></div></div></div>
+</div>
+
+<!-- Wrist guard overlay -->
+<div id="wrist-guard"></div>
+<!-- Margin line -->
+<div id="margin-line"></div>
+<!-- Writing guides overlay canvas -->
+<canvas id="guides-canvas" style="position:absolute;top:0;left:0;pointer-events:none;z-index:7;display:none;opacity:0.35;"></canvas>
+
+<!-- Toasts -->
+<div id="palm-toast">⊗ Palm rejected</div>
+<div id="mode-toast"></div>
+<div id="autopg-toast">＋ New page added</div>
+<div id="eraser-ring"></div>
+<div id="shape-snap-preview"></div>
+<div id="shape-label-toast"></div>
+<div id="bookmark-toast"></div>
+
+<!-- Ruler overlay (SVG draggable) -->
+<svg id="ruler-svg" style="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:150;display:none;">
+  <defs>
+    <filter id="ruler-shadow"><feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="rgba(0,0,0,0.5)"/></filter>
+  </defs>
+  <g id="ruler-g" style="pointer-events:all;cursor:grab;">
+    <rect id="ruler-body" rx="5" fill="#d4a843" stroke="#a07820" stroke-width="1.5" filter="url(#ruler-shadow)"/>
+    <g id="ruler-ticks"></g>
+    <text id="ruler-label" fill="rgba(0,0,0,0.35)" font-family="'DM Mono',monospace" font-size="9" text-anchor="middle">RULER — drag ends to rotate · draw along edge</text>
+    <!-- Drag handle left -->
+    <circle id="ruler-handle-l" r="10" fill="#c9a96e" stroke="#fff" stroke-width="1.5" style="cursor:ew-resize;" opacity="0.9"/>
+    <text id="ruler-icon-l" fill="#0d0d0f" font-size="11" text-anchor="middle" dominant-baseline="central" style="pointer-events:none;">↔</text>
+    <!-- Drag handle right -->
+    <circle id="ruler-handle-r" r="10" fill="#c9a96e" stroke="#fff" stroke-width="1.5" style="cursor:ew-resize;" opacity="0.9"/>
+    <text id="ruler-icon-r" fill="#0d0d0f" font-size="11" text-anchor="middle" dominant-baseline="central" style="pointer-events:none;">↔</text>
+  </g>
+</svg>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════════════════
+const A4W=794, A4H=1123;
+const THICK=[2,4,6.5,10,15];
+const PAGE_STYLES=[
+  {id:'blank',name:'Blank',lines:0},
+  {id:'small',name:'Small Lines',lines:6},
+  {id:'medium',name:'Medium Lines',lines:8},
+  {id:'large',name:'Large Lines',lines:11},
+  {id:'dots',name:'Dot Grid',lines:5,dot:true},
+  {id:'graph',name:'Graph',lines:5,grid:true},
+  {id:'music',name:'Music Staff',lines:'music'},
+];
+const PAGE_COLORS=[
+  {id:'white',bg:'#f5f2ec',label:'White'},
+  {id:'cream',bg:'#f0e8d0',label:'Cream'},
+  {id:'dark',bg:'#1e1e26',label:'Dark'},
+  {id:'black',bg:'#0d0d0f',label:'Black'},
+];
+const EMOJIS=['📓','📔','📒','📕','📗','📘','📙','🗒️','📋','📁','📂','🗂️','✏️','🖊️','🖋️','📐','📏','🔬','🎨','💡','🌿','⚡','🌊','🔮'];
+const PALETTE={
+  'Blacks & Grays':['#000000','#1a1a1a','#2d2d2d','#404040','#555555','#6b6b6b','#888888','#aaaaaa','#cccccc','#e5e5e5','#f2f2f2','#ffffff'],
+  'Reds & Pinks':['#8b0000','#cc0000','#e53030','#ff5555','#ff8080','#ffaaaa','#cc0066','#e0407a','#ff6699','#ff99bb','#ffccdd'],
+  'Oranges & Yellows':['#7a3000','#cc5500','#e07030','#ff8c00','#ffaa44','#ffc870','#ffdd99','#ccaa00','#e8c000','#f5d800','#ffee55'],
+  'Greens':['#003300','#006600','#009900','#33cc33','#55dd55','#88ee88','#aaffaa','#00aa66','#00cc88','#44ddaa','#88ffcc'],
+  'Blues & Teals':['#000066','#0000cc','#2244ff','#4466ff','#6688ff','#88aaff','#aaccff','#006688','#0099bb','#22bbdd','#66ddee','#99eeff'],
+  'Purples & Violets':['#330066','#660099','#8800cc','#aa33dd','#cc66ee','#dd99ff','#eeccff','#660044','#990066','#cc2288','#ee55aa'],
+  'Warm Naturals':['#3d1a00','#6b3300','#8b5e3c','#a0784a','#c8a97e','#e8cc9a','#f5e6c8','#704214','#a05c28','#c88040'],
+  'Neons':['#00ff41','#39ff14','#ccff00','#ffff00','#ff6600','#ff0090','#ff00cc','#cc00ff','#00ccff','#00ffff'],
+};
+
+let app={
+  folders:[],
+  notes:[],
+  activeFolder:null,
+};
+
+let cv={
+  note:null,
+  tool:'pen',
+  color:'#1a1a1a',
+  thick:1,
+  zoom:1,
+  strokes:[],      // array per page
+  undoStack:[],
+  redoStack:[],
+  drawing:false,
+  currentStroke:null,
+  thumbCtxs:[],
+  palmTimer:null,
+  modeTimer:null,
+  pgToasts:null,
+  autoPageThreshold:0.85,
+  lastAutoPage:-1,
+  selectedStyle:'blank',
+  selectedColor:'white',
+};
+
+// ═══════════════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════════════
+function setNavActive(el,view){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  el.classList.add('active');
+  renderNotes(view);
+}
+
+function renderFolders(){
+  const grid=document.getElementById('folders-grid');
+  const navF=document.getElementById('nav-folders');
+  grid.innerHTML='';navF.innerHTML='';
+  if(!app.folders.length){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;opacity:.4"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><p>No folders yet.</p></div>';
+    return;
+  }
+  app.folders.forEach(f=>{
+    const notes=app.notes.filter(n=>n.folderId===f.id);
+    const card=document.createElement('div');
+    card.className='folder-card';
+    card.innerHTML=`<div style="font-size:28px">${f.icon}</div><div class="folder-name">${f.name}</div><div class="folder-meta">${notes.length} note${notes.length!==1?'s':''}</div>`;
+    card.onclick=()=>filterByFolder(f);
+    grid.appendChild(card);
+    const ni=document.createElement('div');
+    ni.className='nav-item';
+    ni.innerHTML=`<span>${f.icon}</span> ${f.name}`;
+    ni.onclick=()=>{setNavActive(ni,'folder');filterByFolder(f);};
+    navF.appendChild(ni);
+  });
+}
+
+function filterByFolder(f){
+  app.activeFolder=f;
+  renderNotes('folder');
+}
+
+function renderNotes(view='all'){
+  const grid=document.getElementById('notes-grid');
+  grid.innerHTML='';
+  let notes=app.notes;
+  if(view==='folder'&&app.activeFolder) notes=notes.filter(n=>n.folderId===app.activeFolder.id);
+  if(view==='recent') notes=[...notes].sort((a,b)=>b.updated-a.updated).slice(0,12);
+  if(!notes.length){
+    grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;opacity:.4"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><p>No notes here.</p></div>';
+    return;
+  }
+  notes.forEach(n=>{
+    const card=document.createElement('div');
+    card.className='note-card';
+    const pgBg=PAGE_COLORS.find(c=>c.id===n.pageColor)||PAGE_COLORS[0];
+    card.innerHTML=`
+      <div class="note-thumb" style="background:${pgBg.bg}">
+        <canvas id="nth-${n.id}" width="210" height="160"></canvas>
+        <div class="note-pages-badge">${n.strokes.length} pg</div>
+      </div>
+      <div class="note-info">
+        <div class="note-title">${n.title}</div>
+        <div class="note-meta">${timeAgo(n.updated)}</div>
+      </div>`;
+    card.onclick=()=>openNote(n);
+    grid.appendChild(card);
+    setTimeout(()=>drawNoteThumb(n),10);
+  });
+}
+
+function drawNoteThumb(note){
+  const el=document.getElementById('nth-'+note.id);
+  if(!el)return;
+  const tc=el.getContext('2d');
+  const pgBg=PAGE_COLORS.find(c=>c.id===note.pageColor)||PAGE_COLORS[0];
+  tc.fillStyle=pgBg.bg;tc.fillRect(0,0,210,160);
+  const sx=210/A4W,sy=160/A4H;
+  note.strokes.forEach(pg=>pg.forEach(stroke=>{
+    if(stroke.points.length<2)return;
+    tc.save();tc.scale(sx,sy);
+    tc.strokeStyle=stroke.color;tc.lineWidth=stroke.width;
+    tc.lineCap='round';tc.lineJoin='round';tc.beginPath();
+    tc.moveTo(stroke.points[0].x,stroke.points[0].y);
+    for(let i=1;i<stroke.points.length-1;i++){
+      const mx=(stroke.points[i].x+stroke.points[i+1].x)/2;
+      const my=(stroke.points[i].y+stroke.points[i+1].y)/2;
+      tc.quadraticCurveTo(stroke.points[i].x,stroke.points[i].y,mx,my);
+    }
+    tc.lineTo(stroke.points[stroke.points.length-1].x,stroke.points[stroke.points.length-1].y);
+    tc.stroke();tc.restore();
+  }));
+}
+
+function timeAgo(ts){
+  const d=Date.now()-ts;
+  if(d<60000)return'just now';
+  if(d<3600000)return Math.floor(d/60000)+'m ago';
+  if(d<86400000)return Math.floor(d/3600000)+'h ago';
+  return Math.floor(d/86400000)+'d ago';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FOLDER MODAL
+// ═══════════════════════════════════════════════════════════════
+let selEmoji='📓';
+function openFolderModal(){
+  selEmoji='📓';
+  document.getElementById('folder-name-input').value='';
+  const eg=document.getElementById('emoji-grid');
+  eg.innerHTML='';
+  EMOJIS.forEach(e=>{
+    const d=document.createElement('div');
+    d.className='emoji-opt'+(e==='📓'?' active':'');
+    d.textContent=e;
+    d.onclick=()=>{selEmoji=e;document.querySelectorAll('.emoji-opt').forEach(x=>x.classList.remove('active'));d.classList.add('active');};
+    eg.appendChild(d);
+  });
+  document.getElementById('folder-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('folder-name-input').focus(),200);
+}
+
+
+
+// ═══════════════════════════════════════════════════════════════
+// NOTE MODAL
+// ═══════════════════════════════════════════════════════════════
+let selStyle='blank',selPageColor='white';
+function openNoteModal(){
+  selStyle='blank';selPageColor='white';
+  document.getElementById('note-title-input').value='';
+  populateFolderSelect();
+
+  // style grid
+  const sg=document.getElementById('style-grid');
+  sg.innerHTML='';
+  PAGE_STYLES.forEach(s=>{
+    const d=document.createElement('div');
+    d.className='style-opt'+(s.id==='blank'?' active':'');
+    d.innerHTML=`<div class="style-preview">${getStylePreviewSVG(s)}</div><div class="style-name">${s.name}</div>`;
+    d.onclick=()=>{selStyle=s.id;document.querySelectorAll('.style-opt').forEach(x=>x.classList.remove('active'));d.classList.add('active');};
+    sg.appendChild(d);
+  });
+
+  // page color
+  const pcg=document.getElementById('pagecolor-grid');
+  pcg.innerHTML='';
+  PAGE_COLORS.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='pagecolor-opt'+(c.id==='white'?' active':'');
+    d.style.background=c.bg;
+    d.title=c.label;
+    d.style.border='2px solid '+(c.id==='white'?'var(--gold)':'transparent');
+    d.onclick=()=>{
+      selPageColor=c.id;
+      document.querySelectorAll('.pagecolor-opt').forEach(x=>{x.classList.remove('active');x.style.border='2px solid transparent';});
+      d.classList.add('active');d.style.border='2px solid var(--gold)';
+    };
+    pcg.appendChild(d);
+  });
+
+  document.getElementById('note-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('note-title-input').focus(),200);
+}
+
+function getStylePreviewSVG(s){
+  if(s.id==='blank')return'';
+  const W=48,H=60,bg='#f5f2ec';
+  let lines='';
+  if(s.dot){
+    for(let y=6;y<H;y+=s.lines)for(let x=5;x<W;x+=s.lines)lines+=`<circle cx="${x}" cy="${y}" r=".8" fill="rgba(0,0,0,0.15)"/>`;
+  } else if(s.grid){
+    for(let y=s.lines;y<H;y+=s.lines)lines+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="rgba(0,0,0,0.12)" stroke-width=".5"/>`;
+    for(let x=s.lines;x<W;x+=s.lines)lines+=`<line x1="${x}" y1="0" x2="${x}" y2="${H}" stroke="rgba(0,0,0,0.12)" stroke-width=".5"/>`;
+  } else if(s.lines==='music'){
+    for(let i=0;i<3;i++){const base=12+i*16;for(let j=0;j<5;j++)lines+=`<line x1="2" y1="${base+j*2}" x2="${W-2}" y2="${base+j*2}" stroke="rgba(0,0,0,0.2)" stroke-width=".6"/>`;}
+  } else {
+    for(let y=s.lines;y<H;y+=s.lines)lines+=`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="rgba(0,0,0,0.15)" stroke-width=".7"/>`;
+  }
+  return`<svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg"><rect width="${W}" height="${H}" fill="${bg}"/>${lines}</svg>`;
+}
+
+function populateFolderSelect(){
+  const sel=document.getElementById('note-folder-select');
+  sel.innerHTML='<option value="">No folder</option>';
+  app.folders.forEach(f=>{sel.innerHTML+=`<option value="${f.id}">${f.icon} ${f.name}</option>`;});
+}
+
+
+
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+// ═══════════════════════════════════════════════════════════════
+// OPEN NOTE → CANVAS
+// ═══════════════════════════════════════════════════════════════
+function openNote(note){
+  cv.note=note;
+  cv.strokes=note.strokes;
+  cv.undoStack=[];cv.redoStack=[];
+  cv.tool='pen';cv.thick=1;cv.zoom=1;cv.lastAutoPage=-1;
+
+  // default color based on page bg
+  const isDark=note.pageColor==='dark'||note.pageColor==='black';
+  cv.color=isDark?'#f5f2ec':'#1a1a1a';
+  updateRailColor();
+
+  document.getElementById('canvas-title').textContent=note.title;
+
+  showScreen('canvas-screen');
+  initCanvas();
+  setTool('pen');
+  setThick(1,document.querySelector('.thick-btn[data-t="1"]'));
+  showToast('mode',`✏  ${note.pageStyle} · ${note.pageColor}`);
+}
+
+
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');});
+  document.getElementById(id).classList.add('active');
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CANVAS INIT
+// ═══════════════════════════════════════════════════════════════
+const canvas=document.getElementById('drawing-canvas');
+const ctx=canvas.getContext('2d');
+const cInner=document.getElementById('canvas-inner');
+const cScroll=document.getElementById('canvas-scroll');
+const PAGE_GAP=24; // visible gap between pages in px
+
+function initCanvas(){
+  const pages=cv.strokes.length;
+  canvas.width=A4W;
+  canvas.height=A4H*pages;
+  // total displayed height includes gaps between pages
+  const totalH=A4H*pages+(pages-1)*PAGE_GAP;
+  cInner.style.width=A4W+'px';
+  cInner.style.height=totalH+'px';
+  applyZoom();
+  redrawAll();
+  buildThumbs();
+}
+
+function redrawAll(){
+  if(!cv.note)return;
+  const pages=cv.strokes.length;
+  const pgBg=PAGE_COLORS.find(c=>c.id===cv.note.pageColor)||PAGE_COLORS[0];
+  ctx.fillStyle=pgBg.bg;
+  ctx.fillRect(0,0,A4W,A4H*pages);
+  drawPageLines();
+  for(let p=0;p<pages;p++)cv.strokes[p].forEach(s=>drawStroke(ctx,s));
+}
+
+function drawPageLines(){
+  if(!cv.note)return;
+  const style=PAGE_STYLES.find(s=>s.id===cv.note.pageStyle)||PAGE_STYLES[0];
+  const pages=cv.strokes.length;
+  const pgBg=PAGE_COLORS.find(c=>c.id===cv.note.pageColor)||PAGE_COLORS[0];
+  const isDark=cv.note.pageColor==='dark'||cv.note.pageColor==='black';
+  const lineColor=isDark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.09)';
+  const dotColor=isDark?'rgba(255,255,255,0.12)':'rgba(0,0,0,0.15)';
+
+  for(let p=0;p<pages;p++){
+    const offsetY=p*A4H;
+    if(style.id==='blank')continue;
+    if(style.dot){
+      ctx.fillStyle=dotColor;
+      for(let y=40;y<A4H;y+=style.lines*4)
+        for(let x=20;x<A4W;x+=style.lines*4){
+          ctx.beginPath();ctx.arc(x,offsetY+y,1,0,Math.PI*2);ctx.fill();
+        }
+    } else if(style.grid){
+      ctx.strokeStyle=lineColor;ctx.lineWidth=0.6;
+      const step=style.lines*4;
+      for(let y=step;y<A4H;y+=step){ctx.beginPath();ctx.moveTo(0,offsetY+y);ctx.lineTo(A4W,offsetY+y);ctx.stroke();}
+      for(let x=step;x<A4W;x+=step){ctx.beginPath();ctx.moveTo(x,offsetY);ctx.lineTo(x,offsetY+A4H);ctx.stroke();}
+    } else if(style.lines==='music'){
+      ctx.strokeStyle=lineColor;ctx.lineWidth=0.8;
+      for(let staff=0;staff<8;staff++){
+        const base=offsetY+60+staff*130;
+        for(let j=0;j<5;j++){ctx.beginPath();ctx.moveTo(30,base+j*8);ctx.lineTo(A4W-30,base+j*8);ctx.stroke();}
+      }
+    } else {
+      ctx.strokeStyle=lineColor;ctx.lineWidth=0.7;
+      const step=style.lines*4;
+      for(let y=step;y<A4H;y+=step){ctx.beginPath();ctx.moveTo(0,offsetY+y);ctx.lineTo(A4W,offsetY+y);ctx.stroke();}
+    }
+  }
+}
+
+function applyZoom(){
+  const pages=cv.strokes.length;
+  const totalH=A4H*pages+(pages-1)*PAGE_GAP;
+  cInner.style.width=(A4W*cv.zoom)+'px';
+  cInner.style.height=(totalH*cv.zoom)+'px';
+  // scale just the canvas element, not the whole container
+  canvas.style.width=(A4W*cv.zoom)+'px';
+  canvas.style.height=(A4H*pages*cv.zoom)+'px';
+  // position canvas to sit at top (gaps handled by overlay divs)
+  canvas.style.position='absolute';
+  canvas.style.top='0';
+  canvas.style.left='0';
+  document.getElementById('zoom-label').textContent=Math.round(cv.zoom*100)+'%';
+  updatePageOverlays();
+  // update guides canvas if active
+  if(comfort.guides)renderWritingGuides();
+}
+
+function updatePageOverlays(){
+  document.querySelectorAll('.pg-break,.pg-num').forEach(e=>e.remove());
+  const pages=cv.strokes.length;
+  for(let i=0;i<pages;i++){
+    // Page number — top-right corner of EACH page
+    const pn=document.createElement('div');
+    pn.className='pg-num';
+    pn.textContent=(i+1)+' / '+pages;
+    // Each page starts at i*(A4H + PAGE_GAP)*zoom, gap sits BEFORE the page (except page 0)
+    const pageTopPx=i*(A4H+PAGE_GAP)*cv.zoom;
+    pn.style.top=pageTopPx+'px';
+    pn.style.right='16px';
+    cInner.appendChild(pn);
+
+    // Break divider BEFORE each page (except the first)
+    if(i>0){
+      const br=document.createElement('div');
+      br.className='pg-break';
+      br.style.top=((i*(A4H+PAGE_GAP)-PAGE_GAP)*cv.zoom)+'px';
+      br.style.height=(PAGE_GAP*cv.zoom)+'px';
+      cInner.appendChild(br);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// DRAWING
+// ═══════════════════════════════════════════════════════════════
+function getPos(e){
+  const r=canvas.getBoundingClientRect();
+  const cl=e.touches?e.touches[0].clientX:e.clientX;
+  const ct=e.touches?e.touches[0].clientY:e.clientY;
+  return{x:(cl-r.left)/cv.zoom,y:(ct-r.top)/cv.zoom};
+}
+
+function isPalm(e){
+  if(!e.touches)return false;
+  if(e.touches.length>1)return true;
+  const t=e.touches[0];
+  return t.radiusX>22||t.radiusY>22;
+}
+
+function drawStroke(c,stroke){
+  if(!stroke.points||stroke.points.length<2)return;
+  c.save();c.strokeStyle=stroke.color;c.lineWidth=stroke.width;
+  c.lineCap='round';c.lineJoin='round';c.beginPath();
+  c.moveTo(stroke.points[0].x,stroke.points[0].y);
+  for(let i=1;i<stroke.points.length-1;i++){
+    const mx=(stroke.points[i].x+stroke.points[i+1].x)/2;
+    const my=(stroke.points[i].y+stroke.points[i+1].y)/2;
+    c.quadraticCurveTo(stroke.points[i].x,stroke.points[i].y,mx,my);
+  }
+  c.lineTo(stroke.points[stroke.points.length-1].x,stroke.points[stroke.points.length-1].y);
+  c.stroke();c.restore();
+}
+
+canvas.addEventListener('mousedown',onDown);
+canvas.addEventListener('mousemove',onMove);
+canvas.addEventListener('mouseup',onUp);
+canvas.addEventListener('mouseleave',onUp);
+canvas.addEventListener('touchstart',e=>{if(isPalm(e)){showPalm();return;}e.preventDefault();onDown(e);},{passive:false});
+canvas.addEventListener('touchmove',e=>{if(isPalm(e))return;e.preventDefault();onMove(e);},{passive:false});
+canvas.addEventListener('touchend',e=>{e.preventDefault();onUp(e);},{passive:false});
+
+function onDown(e){
+  if(isPalm(e))return;
+  cv.drawing=true;cv.redoStack=[];
+  const pos=getPos(e);
+  if(cv.tool==='pen'){
+    cv.currentStroke={color:cv.color,width:THICK[cv.thick-1],points:[pos]};
+  } else if(cv.tool==='se'){
+    eraseStroke(pos);
+  } else if(cv.tool==='pe'){
+    erasePixel(pos);
+  }
+}
+
+function onMove(e){
+  if(!cv.drawing)return;
+  const pos=getPos(e);
+  if(cv.tool==='pe'){
+    const ec=document.getElementById('eraser-ring');
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    const sz=THICK[cv.thick-1]*2.5*cv.zoom;
+    ec.style.left=cx+'px';ec.style.top=cy+'px';ec.style.width=sz+'px';ec.style.height=sz+'px';ec.style.display='block';
+    erasePixel(pos);
+  }
+  if(cv.tool==='pen'&&cv.currentStroke){
+    cv.currentStroke.points.push(pos);
+    drawStroke(ctx,cv.currentStroke);
+  } else if(cv.tool==='se'){
+    eraseStroke(pos);
+  }
+}
+
+function onUp(){
+  if(!cv.drawing)return;
+  cv.drawing=false;
+  document.getElementById('eraser-ring').style.display='none';
+  if(cv.tool==='pen'&&cv.currentStroke&&cv.currentStroke.points.length>1){
+    const pg=getPageForY(cv.currentStroke.points[0].y);
+    cv.strokes[pg].push(cv.currentStroke);
+    cv.undoStack.push({type:'add',pg,stroke:cv.currentStroke});
+    updateThumb(pg);
+    checkAutoPage(cv.currentStroke.points);
+  }
+  cv.currentStroke=null;
+}
+
+function getPageForY(y){
+  return Math.min(Math.max(Math.floor(y/A4H),0),cv.strokes.length-1);
+}
+
+function erasePixel(pos){
+  const sz=THICK[cv.thick-1]*2.5;
+  ctx.save();ctx.globalCompositeOperation='destination-out';
+  ctx.beginPath();ctx.arc(pos.x,pos.y,sz/2,0,Math.PI*2);
+  ctx.fillStyle='rgba(0,0,0,1)';ctx.fill();ctx.restore();
+  const pgBg=PAGE_COLORS.find(c=>c.id===cv.note.pageColor)||PAGE_COLORS[0];
+  ctx.save();ctx.globalCompositeOperation='destination-over';
+  ctx.fillStyle=pgBg.bg;ctx.fillRect(0,0,A4W,A4H*cv.strokes.length);ctx.restore();
+}
+
+function eraseStroke(pos){
+  const thresh=THICK[cv.thick-1]*5;
+  let changed=false;
+  for(let p=0;p<cv.strokes.length;p++){
+    const before=cv.strokes[p].length;
+    cv.strokes[p]=cv.strokes[p].filter(s=>!s.points.some(pt=>{
+      const dx=pt.x-pos.x,dy=pt.y-pos.y;
+      return Math.sqrt(dx*dx+dy*dy)<thresh;
+    }));
+    if(cv.strokes[p].length!==before){changed=true;updateThumb(p);}
+  }
+  if(changed)redrawAll();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// AUTO PAGE
+// ═══════════════════════════════════════════════════════════════
+function checkAutoPage(points){
+  const lastPg=cv.strokes.length-1;
+  const threshold=A4H*(lastPg+cv.autoPageThreshold);
+  const lowestY=Math.max(...points.map(p=>p.y));
+  if(lowestY>threshold&&cv.lastAutoPage!==lastPg){
+    cv.lastAutoPage=lastPg;
+    addPage(true);
+    showAutoPageToast();
+  }
+}
+
+function addPage(auto=false){
+  cv.strokes.push([]);
+  const pages=cv.strokes.length;
+  canvas.height=A4H*pages;
+  const totalH=A4H*pages+(pages-1)*PAGE_GAP;
+  cInner.style.height=(totalH*cv.zoom)+'px';
+  canvas.style.height=(A4H*pages*cv.zoom)+'px';
+  if(cv.note)cv.note.strokes=cv.strokes;
+  redrawAll();
+  updatePageOverlays();
+  buildThumbs();
+  if(!auto){
+    setTimeout(()=>{
+      cScroll.scrollTo({top:(pages-1)*(A4H+PAGE_GAP)*cv.zoom,behavior:'smooth'});
+    },80);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// THUMBNAILS
+// ═══════════════════════════════════════════════════════════════
+
+
+function updateThumb(pg){
+  const tc=cv.thumbCtxs[pg];if(!tc)return;
+  const TW=84,TH=119;
+  const pgBg=PAGE_COLORS.find(c=>c.id==(cv.note?cv.note.pageColor:'white'))||PAGE_COLORS[0];
+  tc.fillStyle=pgBg.bg;tc.fillRect(0,0,TW,TH);
+  tc.save();tc.scale(TW/A4W,TH/A4H);
+  const off=pg*A4H;
+  cv.strokes[pg].forEach(stroke=>{
+    if(stroke.points.length<2)return;
+    tc.strokeStyle=stroke.color;tc.lineWidth=stroke.width;
+    tc.lineCap='round';tc.lineJoin='round';tc.beginPath();
+    tc.moveTo(stroke.points[0].x,stroke.points[0].y-off);
+    for(let i=1;i<stroke.points.length-1;i++){
+      const mx=(stroke.points[i].x+stroke.points[i+1].x)/2;
+      const my=(stroke.points[i].y+stroke.points[i+1].y)/2-off;
+      tc.quadraticCurveTo(stroke.points[i].x,stroke.points[i].y-off,mx,my);
+    }
+    const last=stroke.points[stroke.points.length-1];
+    tc.lineTo(last.x,last.y-off);
+    tc.stroke();
+  });
+  tc.restore();
+}
+
+function goToPage(i){
+  document.querySelectorAll('.snap-item').forEach((el,j)=>el.classList.toggle('active',j===i));
+  cScroll.scrollTo({top:i*(A4H+PAGE_GAP)*cv.zoom,behavior:'smooth'});
+}
+
+cScroll.addEventListener('scroll',()=>{
+  const pg=Math.floor(cScroll.scrollTop/((A4H+PAGE_GAP)*cv.zoom));
+  const clamped=Math.min(Math.max(pg,0),cv.strokes.length-1);
+  document.querySelectorAll('.snap-item').forEach((el,i)=>el.classList.toggle('active',i===clamped));
+});
+
+// ═══════════════════════════════════════════════════════════════
+// TOOLS — extended with shape + ruler
+// ═══════════════════════════════════════════════════════════════
+function setTool(t){
+  cv.tool=t;
+  ['pen','se','pe','shape'].forEach(id=>{
+    const el=document.getElementById('rb-'+id);
+    if(el)el.classList.toggle('active',id===t);
+  });
+  // ruler btn separate — doesn't deactivate on tool switch
+  if(t==='pen')canvas.style.cursor='crosshair';
+  else if(t==='se')canvas.style.cursor='cell';
+  else if(t==='pe')canvas.style.cursor='none';
+  else if(t==='shape')canvas.style.cursor='crosshair';
+  const labels={pen:'✏  Pen',se:'◻ Stroke Eraser',pe:'◉ Pixel Eraser',shape:'⬡  Shape — draw & hold to snap'};
+  showToast('mode',labels[t]||t);
+}
+
+function setThick(t,el){
+  cv.thick=t;
+  document.querySelectorAll('.thick-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function updateRailColor(){
+  document.getElementById('rail-color').style.background=cv.color;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  SHAPE RECOGNITION ENGINE
+// ═══════════════════════════════════════════════════════════════
+// State
+let shapeTimer=null;
+const SHAPE_HOLD_MS=480; // hold this long after lifting to trigger snap
+
+// Called from onUp when tool==='shape'
+function finishShapeStroke(points){
+  if(points.length<4)return false;
+  clearTimeout(shapeTimer);
+  shapeTimer=setTimeout(()=>{
+    const snapped=recogniseAndSnap(points);
+    if(snapped){
+      // remove the raw freehand stroke we just pushed
+      const pg=getPageForY(points[0].y);
+      cv.strokes[pg].pop();
+      cv.undoStack.pop();
+      // add snapped shape stroke
+      cv.strokes[pg].push(snapped);
+      cv.undoStack.push({type:'add',pg,stroke:snapped});
+      redrawAll();
+      cv.strokes.forEach((_,i)=>updateThumb(i));
+      showShapeSnap(snapped.shapeName);
+    }
+  }, SHAPE_HOLD_MS);
+  return true;
+}
+
+function recogniseAndSnap(pts){
+  // Normalize points relative to their bounding box
+  const xs=pts.map(p=>p.x), ys=pts.map(p=>p.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs);
+  const minY=Math.min(...ys),maxY=Math.max(...ys);
+  const W=maxX-minX, H=maxY-minY;
+  const cx=(minX+maxX)/2, cy=(minY+maxY)/2;
+  if(W<10&&H<10)return null;
+
+  const shape=classify(pts,W,H,cx,cy);
+  if(!shape)return null;
+
+  const strokeBase={color:cv.color,width:THICK[cv.thick-1]};
+  return buildShapeStroke(shape,pts,W,H,cx,cy,minX,minY,maxX,maxY,strokeBase);
+}
+
+function classify(pts,W,H,cx,cy){
+  const n=pts.length;
+  // Aspect ratio
+  const aspect=W/Math.max(H,1);
+
+  // ── LINE: very narrow bounding box ──
+  const diag=Math.sqrt(W*W+H*H);
+  if(W<diag*0.15||H<diag*0.15) return 'line';
+
+  // ── ARROW: check for a backtrack at the end (arrowhead) ──
+  if(hasArrowHead(pts)) return 'arrow';
+
+  // ── CIRCLE/ELLIPSE: start and end close, roundness high ──
+  const startEnd=dist(pts[0],pts[n-1]);
+  const isClosed=startEnd<diag*0.35;
+  const roundness=computeRoundness(pts,cx,cy);
+  if(isClosed&&roundness>0.72) return 'circle';
+
+  // ── TRIANGLE: 3 corners ──
+  if(isClosed){
+    const corners=findCorners(pts);
+    if(corners>=3&&corners<=4&&roundness<0.7) return 'triangle';
+    // ── STAR: many direction changes in closed loop ──
+    const dirChanges=countDirectionChanges(pts);
+    if(dirChanges>=8) return 'star';
+    // ── RECTANGLE ──
+    return 'rectangle';
+  }
+
+  // open path fallbacks
+  return 'line';
+}
+
+function dist(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);}
+
+function computeRoundness(pts,cx,cy){
+  // How consistently are all points at the same distance from center?
+  const dists=pts.map(p=>dist(p,{x:cx,y:cy}));
+  const mean=dists.reduce((a,b)=>a+b,0)/dists.length;
+  const variance=dists.map(d=>(d-mean)**2).reduce((a,b)=>a+b,0)/dists.length;
+  const stddev=Math.sqrt(variance);
+  return 1-Math.min(stddev/Math.max(mean,1),1);
+}
+
+function findCorners(pts){
+  // Sample at regular intervals and look for sharp angle changes
+  const step=Math.max(1,Math.floor(pts.length/20));
+  let corners=0;
+  for(let i=step;i<pts.length-step;i+=step){
+    const prev=pts[i-step],curr=pts[i],next=pts[i+step];
+    const a1=Math.atan2(curr.y-prev.y,curr.x-prev.x);
+    const a2=Math.atan2(next.y-curr.y,next.x-curr.x);
+    let diff=Math.abs(a2-a1);
+    if(diff>Math.PI)diff=2*Math.PI-diff;
+    if(diff>0.7) corners++;
+  }
+  return corners;
+}
+
+function countDirectionChanges(pts){
+  let changes=0,lastDir=null;
+  const step=Math.max(1,Math.floor(pts.length/30));
+  for(let i=step;i<pts.length;i+=step){
+    const dx=pts[i].x-pts[i-step].x, dy=pts[i].y-pts[i-step].y;
+    const angle=Math.atan2(dy,dx);
+    const sector=Math.round(angle/(Math.PI/4));
+    if(lastDir!==null&&sector!==lastDir) changes++;
+    lastDir=sector;
+  }
+  return changes;
+}
+
+function hasArrowHead(pts){
+  // Check if last 20% of stroke makes a sharp backtrack
+  const tail=pts.slice(Math.floor(pts.length*0.7));
+  if(tail.length<4)return false;
+  const mainDir=Math.atan2(pts[pts.length-1].y-pts[0].y,pts[pts.length-1].x-pts[0].x);
+  const tailDir=Math.atan2(tail[tail.length-1].y-tail[0].y,tail[tail.length-1].x-tail[0].x);
+  let diff=Math.abs(tailDir-mainDir);
+  if(diff>Math.PI)diff=2*Math.PI-diff;
+  return diff>1.8; // more than ~100° backtrack
+}
+
+function buildShapeStroke(shape,pts,W,H,cx,cy,minX,minY,maxX,maxY,base){
+  let points=[];
+  const r=Math.min(W,H)/2;
+
+  switch(shape){
+    case 'line':{
+      points=[pts[0],pts[pts.length-1]];
+      break;
+    }
+    case 'arrow':{
+      const start=pts[0], end=pts[pts.length-1];
+      const angle=Math.atan2(end.y-start.y,end.x-start.x);
+      const headLen=Math.max(20,Math.sqrt(W*W+H*H)*0.15);
+      const a1=angle+Math.PI*0.8, a2=angle-Math.PI*0.8;
+      points=[
+        start, end,
+        {x:end.x+headLen*Math.cos(a1),y:end.y+headLen*Math.sin(a1)},
+        end,
+        {x:end.x+headLen*Math.cos(a2),y:end.y+headLen*Math.sin(a2)},
+      ];
+      break;
+    }
+    case 'circle':{
+      const rx=W/2, ry=H/2;
+      const steps=64;
+      for(let i=0;i<=steps;i++){
+        const a=i/steps*Math.PI*2;
+        points.push({x:cx+rx*Math.cos(a),y:cy+ry*Math.sin(a)});
+      }
+      break;
+    }
+    case 'rectangle':{
+      points=[
+        {x:minX,y:minY},{x:maxX,y:minY},
+        {x:maxX,y:maxY},{x:minX,y:maxY},{x:minX,y:minY}
+      ];
+      break;
+    }
+    case 'triangle':{
+      points=[
+        {x:cx,y:minY},
+        {x:maxX,y:maxY},
+        {x:minX,y:maxY},
+        {x:cx,y:minY}
+      ];
+      break;
+    }
+    case 'star':{
+      const outerR=Math.min(W,H)/2;
+      const innerR=outerR*0.42;
+      const n=5;
+      for(let i=0;i<=n*2;i++){
+        const a=i/n*Math.PI-Math.PI/2;
+        const rr=i%2===0?outerR:innerR;
+        points.push({x:cx+rr*Math.cos(a),y:cy+rr*Math.sin(a)});
+      }
+      break;
+    }
+    default:
+      return null;
+  }
+
+  return{...base, points, shapeName:shape, isShape:true};
+}
+
+function showShapeSnap(shapeName){
+  const icons={line:'╱ Line',arrow:'→ Arrow',circle:'◯ Circle',rectangle:'▭ Rectangle',triangle:'△ Triangle',star:'✦ Star'};
+  const el=document.getElementById('shape-label-toast');
+  el.textContent=(icons[shapeName]||shapeName)+' snapped';
+  el.classList.add('show');
+  clearTimeout(cv._shapeToastTimer);
+  cv._shapeToastTimer=setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  RULER TOOL
+// ═══════════════════════════════════════════════════════════════
+let ruler={
+  active:false,
+  // endpoints in screen coords
+  x1:200,y1:400, x2:700,y2:400,
+  dragging:null, // 'body'|'left'|'right'
+  dragStart:{x:0,y:0},
+  bodyStart:{x1:0,y1:0,x2:0,y2:0},
+};
+
+function toggleRuler(){
+  ruler.active=!ruler.active;
+  const btn=document.getElementById('rb-ruler');
+  btn.classList.toggle('active',ruler.active);
+  const svg=document.getElementById('ruler-svg');
+  if(ruler.active){
+    // centre ruler in viewport
+    const vw=window.innerWidth,vh=window.innerHeight;
+    ruler.x1=vw*0.15; ruler.y1=vh*0.5;
+    ruler.x2=vw*0.85; ruler.y2=vh*0.5;
+    svg.style.display='block';
+    renderRuler();
+    showToast('mode','📏 Ruler — draw along it · drag to move · drag ends to rotate');
+  } else {
+    svg.style.display='none';
+  }
+}
+
+function renderRuler(){
+  const {x1,y1,x2,y2}=ruler;
+  const dx=x2-x1,dy=y2-y1;
+  const len=Math.sqrt(dx*dx+dy*dy);
+  const angle=Math.atan2(dy,dx)*180/Math.PI;
+  const H=28;
+
+  // ruler body (unrotated rect, then we use transform)
+  const body=document.getElementById('ruler-body');
+  body.setAttribute('x',0);body.setAttribute('y',-H/2);
+  body.setAttribute('width',len);body.setAttribute('height',H);
+
+  // ticks
+  const tg=document.getElementById('ruler-ticks');
+  tg.innerHTML='';
+  const step=20; // px between ticks (~5mm at screen scale)
+  for(let i=step;i<len;i+=step){
+    const isMajor=(Math.round(i/step)%5===0);
+    const tickH=isMajor?10:6;
+    const tick=document.createElementNS('http://www.w3.org/2000/svg','line');
+    tick.setAttribute('x1',i);tick.setAttribute('y1',-H/2);
+    tick.setAttribute('x2',i);tick.setAttribute('y2',-H/2+tickH);
+    tick.setAttribute('stroke','rgba(0,0,0,0.3)');tick.setAttribute('stroke-width','1');
+    tg.appendChild(tick);
+    if(isMajor){
+      const txt=document.createElementNS('http://www.w3.org/2000/svg','text');
+      txt.setAttribute('x',i);txt.setAttribute('y',-H/2+tickH+9);
+      txt.setAttribute('text-anchor','middle');txt.setAttribute('fill','rgba(0,0,0,0.4)');
+      txt.setAttribute('font-family',"'DM Mono',monospace");txt.setAttribute('font-size','7');
+      txt.textContent=Math.round(i/step*5);
+      tg.appendChild(txt);
+    }
+  }
+
+  // label
+  const lbl=document.getElementById('ruler-label');
+  lbl.setAttribute('x',len/2);lbl.setAttribute('y',4);
+
+  // handles
+  const hl=document.getElementById('ruler-handle-l');
+  hl.setAttribute('cx',0);hl.setAttribute('cy',0);
+  document.getElementById('ruler-icon-l').setAttribute('x',0);
+  document.getElementById('ruler-icon-l').setAttribute('y',0);
+
+  const hr=document.getElementById('ruler-handle-r');
+  hr.setAttribute('cx',len);hr.setAttribute('cy',0);
+  document.getElementById('ruler-icon-r').setAttribute('x',len);
+  document.getElementById('ruler-icon-r').setAttribute('y',0);
+
+  // transform the whole group
+  document.getElementById('ruler-g').setAttribute('transform',`translate(${x1},${y1}) rotate(${angle})`);
+}
+
+// Ruler dragging
+const rulerG=document.getElementById('ruler-g');
+const rulerHL=document.getElementById('ruler-handle-l');
+const rulerHR=document.getElementById('ruler-handle-r');
+
+function rulerPointerDown(e,type){
+  if(!ruler.active)return;
+  e.stopPropagation();e.preventDefault();
+  ruler.dragging=type;
+  const p=getSVGPoint(e);
+  ruler.dragStart={x:p.x,y:p.y};
+  ruler.bodyStart={x1:ruler.x1,y1:ruler.y1,x2:ruler.x2,y2:ruler.y2};
+  document.getElementById('ruler-svg').style.pointerEvents='all';
+}
+
+function getSVGPoint(e){
+  const cl=e.touches?e.touches[0].clientX:e.clientX;
+  const ct=e.touches?e.touches[0].clientY:e.clientY;
+  return{x:cl,y:ct};
+}
+
+rulerG.addEventListener('mousedown',e=>{if(e.target===rulerHL||e.target===rulerHR)return;rulerPointerDown(e,'body');});
+rulerHL.addEventListener('mousedown',e=>rulerPointerDown(e,'left'));
+rulerHR.addEventListener('mousedown',e=>rulerPointerDown(e,'right'));
+rulerG.addEventListener('touchstart',e=>{if(e.target===rulerHL||e.target===rulerHR)return;rulerPointerDown(e,'body');},{passive:false});
+rulerHL.addEventListener('touchstart',e=>rulerPointerDown(e,'left'),{passive:false});
+rulerHR.addEventListener('touchstart',e=>rulerPointerDown(e,'right'),{passive:false});
+
+document.addEventListener('mousemove',e=>{
+  if(!ruler.dragging)return;
+  const p=getSVGPoint(e);
+  moveRuler(p);
+});
+document.addEventListener('touchmove',e=>{
+  if(!ruler.dragging)return;
+  e.preventDefault();
+  moveRuler(getSVGPoint(e));
+},{passive:false});
+document.addEventListener('mouseup',()=>{ruler.dragging=null;});
+document.addEventListener('touchend',()=>{ruler.dragging=null;});
+
+function moveRuler(p){
+  const dx=p.x-ruler.dragStart.x, dy=p.y-ruler.dragStart.y;
+  if(ruler.dragging==='body'){
+    ruler.x1=ruler.bodyStart.x1+dx; ruler.y1=ruler.bodyStart.y1+dy;
+    ruler.x2=ruler.bodyStart.x2+dx; ruler.y2=ruler.bodyStart.y2+dy;
+  } else if(ruler.dragging==='left'){
+    ruler.x1=p.x; ruler.y1=p.y;
+  } else if(ruler.dragging==='right'){
+    ruler.x2=p.x; ruler.y2=p.y;
+  }
+  renderRuler();
+}
+
+// Snap-to-ruler: when drawing near the ruler edge, constrain the point
+function snapToRuler(rawX,rawY){
+  if(!ruler.active)return null;
+  // Get canvas position from ruler screen coords
+  const cr=canvas.getBoundingClientRect();
+  // Convert ruler screen coords to canvas coords
+  const rx1=(ruler.x1-cr.left)/cv.zoom, ry1=(ruler.y1-cr.top)/cv.zoom;
+  const rx2=(ruler.x2-cr.left)/cv.zoom, ry2=(ruler.y2-cr.top)/cv.zoom;
+
+  // Distance from point to ruler line
+  const dx=rx2-rx1, dy=ry2-ry1;
+  const len=Math.sqrt(dx*dx+dy*dy);
+  if(len<1)return null;
+  const t=((rawX-rx1)*dx+(rawY-ry1)*dy)/(len*len);
+  const clampedT=Math.max(0,Math.min(1,t));
+  const projX=rx1+clampedT*dx, projY=ry1+clampedT*dy;
+  const perpDist=Math.abs((rawY-ry1)*dx-(rawX-rx1)*dy)/len;
+
+  // Only snap if within 18px of ruler (in canvas coords)
+  if(perpDist<18/cv.zoom){
+    return{x:projX,y:projY};
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  PATCH onDown / onMove / onUp for shape + ruler
+// ═══════════════════════════════════════════════════════════════
+// Rebind drawing events with extended logic
+canvas.removeEventListener('mousedown',onDown);
+canvas.removeEventListener('mousemove',onMove);
+canvas.removeEventListener('mouseup',onUp);
+canvas.removeEventListener('mouseleave',onUp);
+
+
+
+
+
+function onUpV2(){
+  if(!cv.drawing)return;
+  cv.drawing=false;
+  document.getElementById('eraser-ring').style.display='none';
+  if((cv.tool==='pen'||cv.tool==='shape')&&cv.currentStroke&&cv.currentStroke.points.length>1){
+    const pg=getPageForY(cv.currentStroke.points[0].y);
+    cv.strokes[pg].push(cv.currentStroke);
+    cv.undoStack.push({type:'add',pg,stroke:cv.currentStroke});
+    updateThumb(pg);
+    checkAutoPage(cv.currentStroke.points);
+    // Shape recognition trigger
+    if(cv.tool==='shape'){
+      finishShapeStroke(cv.currentStroke.points);
+    }
+  }
+  cv.currentStroke=null;
+  saveData();
+}
+
+canvas.addEventListener('mousedown',onDownV2);
+canvas.addEventListener('mousemove',onMoveV2);
+canvas.addEventListener('mouseup',onUpV2);
+canvas.addEventListener('mouseleave',onUpV2);
+canvas.addEventListener('touchstart',e=>{if(isPalm(e)){showPalm();return;}e.preventDefault();onDownV2(e);},{passive:false});
+canvas.addEventListener('touchmove',e=>{if(isPalm(e))return;e.preventDefault();onMoveV2(e);},{passive:false});
+canvas.addEventListener('touchend',e=>{e.preventDefault();onUpV2(e);},{passive:false});
+
+// ═══════════════════════════════════════════════════════════════
+// COLOR PALETTE
+// ═══════════════════════════════════════════════════════════════
+let paletteOpen=false;
+function togglePalette(){
+  paletteOpen=!paletteOpen;
+  const panel=document.getElementById('palette-panel');
+  if(paletteOpen){buildPalette();panel.classList.add('open');}
+  else panel.classList.remove('open');
+}
+
+function buildPalette(){
+  const panel=document.getElementById('palette-panel');
+  let html='';
+  html+='<div class="palette-section"><div class="palette-sec-label">Recent</div><div class="palette-row" id="pal-recent"></div></div>';
+  Object.entries(PALETTE).forEach(([name,colors])=>{
+    html+=`<div class="palette-section"><div class="palette-sec-label">${name}</div><div class="palette-row">`;
+    colors.forEach(c=>{
+      html+=`<div class="pal-swatch${c===cv.color?' active':''}" style="background:${c}" onclick="pickColor('${c}')"></div>`;
+    });
+    html+='</div></div>';
+  });
+  html+=`<div class="palette-section"><div class="palette-sec-label">Custom Color</div><div class="palette-custom">
+    <input type="color" class="custom-color-input" id="custom-color-picker" value="${cv.color}" oninput="pickColor(this.value)">
+    <input class="palette-hex" id="pal-hex" value="${cv.color}" maxlength="7" oninput="onHexInput(this.value)" placeholder="#000000">
+  </div></div>`;
+  panel.innerHTML=html;
+  buildRecentPalette();
+}
+
+const recentColors=['#1a1a1a','#ffffff','#e53030','#2244ff','#009900','#c8a97e'];
+function buildRecentPalette(){
+  const row=document.getElementById('pal-recent');
+  if(!row)return;
+  row.innerHTML='';
+  recentColors.slice(0,8).forEach(c=>{
+    const d=document.createElement('div');
+    d.className='pal-swatch'+(c===cv.color?' active':'');
+    d.style.background=c;d.onclick=()=>pickColor(c);
+    row.appendChild(d);
+  });
+}
+
+function pickColor(c){
+  cv.color=c;
+  if(!recentColors.includes(c)){recentColors.unshift(c);if(recentColors.length>8)recentColors.pop();}
+  updateRailColor();
+  document.querySelectorAll('.pal-swatch').forEach(s=>s.classList.toggle('active',s.style.background===hexToRgb(c)||s.style.background===c));
+  const hi=document.getElementById('pal-hex');if(hi)hi.value=c;
+  const cp=document.getElementById('custom-color-picker');if(cp)cp.value=c;
+  if(cv.tool!=='pen'&&cv.tool!=='shape')setTool('pen');
+}
+
+function onHexInput(v){
+  if(/^#[0-9a-fA-F]{6}$/.test(v))pickColor(v);
+}
+
+function hexToRgb(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  return`rgb(${r}, ${g}, ${b})`;
+}
+
+document.addEventListener('click',e=>{
+  if(paletteOpen&&!document.getElementById('palette-panel').contains(e.target)&&e.target.id!=='rail-color'){
+    paletteOpen=false;document.getElementById('palette-panel').classList.remove('open');
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ZOOM
+// ═══════════════════════════════════════════════════════════════
+function zoomBy(delta){
+  cv.zoom=Math.min(4,Math.max(0.3,cv.zoom+delta));
+  applyZoom();
+}
+function zoomReset(){cv.zoom=1;applyZoom();}
+
+let lastPinch=null;
+cScroll.addEventListener('touchstart',e=>{
+  if(e.touches.length===2){
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    lastPinch=Math.sqrt(dx*dx+dy*dy);
+  }
+},{passive:true});
+cScroll.addEventListener('touchmove',e=>{
+  if(e.touches.length===2&&lastPinch){
+    const dx=e.touches[0].clientX-e.touches[1].clientX;
+    const dy=e.touches[0].clientY-e.touches[1].clientY;
+    const d2=Math.sqrt(dx*dx+dy*dy);
+    zoomBy((d2-lastPinch)/400);lastPinch=d2;
+  }
+},{passive:true});
+cScroll.addEventListener('touchend',()=>{lastPinch=null;});
+
+// ═══════════════════════════════════════════════════════════════
+// UNDO / REDO
+// ═══════════════════════════════════════════════════════════════
+function doUndo(){
+  if(!cv.undoStack.length)return;
+  const op=cv.undoStack.pop();cv.redoStack.push(op);
+  if(op.type==='add'){const i=cv.strokes[op.pg].indexOf(op.stroke);if(i>-1)cv.strokes[op.pg].splice(i,1);}
+  redrawAll();cv.strokes.forEach((_,i)=>updateThumb(i));
+  saveData();
+}
+function doRedo(){
+  if(!cv.redoStack.length)return;
+  const op=cv.redoStack.pop();cv.undoStack.push(op);
+  if(op.type==='add')cv.strokes[op.pg].push(op.stroke);
+  redrawAll();cv.strokes.forEach((_,i)=>updateThumb(i));
+  saveData();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// TOASTS
+// ═══════════════════════════════════════════════════════════════
+function showPalm(){
+  const el=document.getElementById('palm-toast');
+  el.classList.add('show');
+  clearTimeout(cv.palmTimer);
+  cv.palmTimer=setTimeout(()=>el.classList.remove('show'),1000);
+}
+function showToast(type,msg){
+  const el=document.getElementById(type+'-toast');if(!el)return;
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(cv.modeTimer);
+  cv.modeTimer=setTimeout(()=>el.classList.remove('show'),1800);
+}
+function showAutoPageToast(){
+  const el=document.getElementById('autopg-toast');
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('canvas-screen').classList.contains('active')){
+    if((e.ctrlKey||e.metaKey)&&!e.shiftKey&&e.key==='z'){e.preventDefault();doUndo();}
+    if((e.ctrlKey||e.metaKey)&&e.shiftKey&&e.key==='z'){e.preventDefault();doRedo();}
+    if(e.key==='p'||e.key==='P')setTool('pen');
+    if(e.key==='e'||e.key==='E')setTool('se');
+    if(e.key==='x'||e.key==='X')setTool('pe');
+    if(e.key==='s'||e.key==='S')setTool('shape');
+    if(e.key==='r'||e.key==='R')toggleRuler();
+    if(e.key==='+'||e.key==='=')zoomBy(0.15);
+    if(e.key==='-')zoomBy(-0.15);
+    if(e.key==='0')zoomReset();
+    if(e.key>='1'&&e.key<='5'){const el=document.querySelector(`.thick-btn[data-t="${e.key}"]`);if(el)setThick(parseInt(e.key),el);}
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  OFFLINE STORAGE — IndexedDB (primary) + localStorage (fallback)
+// ═══════════════════════════════════════════════════════════════
+const DB_NAME='inkwell_db';
+const DB_VER=1;
+const STORE='appdata';
+const LS_KEY='inkwell_backup'; // localStorage mirror for fast cold-start
+let idb=null; // IndexedDB instance
+
+// ── Open / Init IndexedDB ──
+function openDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const db=e.target.result;
+      if(!db.objectStoreNames.contains(STORE)){
+        db.createObjectStore(STORE,{keyPath:'key'});
+      }
+    };
+    req.onsuccess=e=>{resolve(e.target.result);};
+    req.onerror=e=>{reject(e.target.error);};
+  });
+}
+
+// ── Write to IndexedDB ──
+function idbSet(db,key,value){
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORE,'readwrite');
+    tx.objectStore(STORE).put({key,value});
+    tx.oncomplete=resolve;
+    tx.onerror=e=>reject(e.target.error);
+  });
+}
+
+// ── Read from IndexedDB ──
+function idbGet(db,key){
+  return new Promise((resolve,reject)=>{
+    const tx=db.transaction(STORE,'readonly');
+    const req=tx.objectStore(STORE).get(key);
+    req.onsuccess=e=>resolve(e.target.result?.value??null);
+    req.onerror=e=>reject(e.target.error);
+  });
+}
+
+// ── Save (async, non-blocking) ──
+function saveData(){
+  // Always sync cv.note strokes first
+  if(cv.note){
+    cv.note.strokes=cv.strokes;
+    cv.note.updated=Date.now();
+  }
+  const payload={folders:app.folders,notes:app.notes,savedAt:Date.now()};
+
+  // 1. Write to localStorage immediately (fast, sync — acts as cache)
+  try{
+    localStorage.setItem(LS_KEY,JSON.stringify(payload));
+  }catch(e){
+    console.warn('Inkwell: localStorage write failed (quota?)',e);
+  }
+
+  // 2. Write to IndexedDB asynchronously (durable, large capacity)
+  if(idb){
+    idbSet(idb,'appdata',payload).catch(e=>{
+      console.warn('Inkwell: IndexedDB write failed',e);
+    });
+  }
+}
+
+// ── Load (tries IndexedDB first, falls back to localStorage) ──
+async function loadData(){
+  // Try IndexedDB first
+  if(idb){
+    try{
+      const data=await idbGet(idb,'appdata');
+      if(data&&(data.notes||[]).length>0){
+        app.folders=data.folders||[];
+        app.notes=data.notes||[];
+        app.notes.forEach(n=>{if(!n.strokes?.length)n.strokes=[[]];});
+        // Mirror back to localStorage
+        try{localStorage.setItem(LS_KEY,JSON.stringify(data));}catch(e){}
+        return true;
+      }
+    }catch(e){
+      console.warn('Inkwell: IndexedDB read failed, falling back',e);
+    }
+  }
+
+  // Fall back to localStorage
+  try{
+    const raw=localStorage.getItem(LS_KEY);
+    if(!raw)return false;
+    const data=JSON.parse(raw);
+    app.folders=data.folders||[];
+    app.notes=data.notes||[];
+    app.notes.forEach(n=>{if(!n.strokes?.length)n.strokes=[[]];});
+    // Migrate into IndexedDB
+    if(idb)idbSet(idb,'appdata',data).catch(()=>{});
+    return true;
+  }catch(e){
+    console.warn('Inkwell: all storage failed',e);
+    return false;
+  }
+}
+
+// ── Storage usage indicator ──
+async function getStorageInfo(){
+  if(navigator.storage&&navigator.storage.estimate){
+    const est=await navigator.storage.estimate();
+    const usedMB=(est.usage/1024/1024).toFixed(1);
+    const quotaMB=(est.quota/1024/1024).toFixed(0);
+    return`${usedMB} MB used of ${quotaMB} MB`;
+  }
+  return'Storage info unavailable';
+}
+
+// ── Export backup (.inkwell file = JSON) ──
+function exportBackup(){
+  if(cv.note){cv.note.strokes=cv.strokes;cv.note.updated=Date.now();}
+  const payload=JSON.stringify({
+    app:'inkwell',version:1,exportedAt:new Date().toISOString(),
+    folders:app.folders,notes:app.notes
+  },null,2);
+  const blob=new Blob([payload],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='inkwell-backup-'+new Date().toISOString().slice(0,10)+'.inkwell';
+  a.click();
+  URL.revokeObjectURL(url);
+  showStorageToast('✦ Backup exported');
+}
+
+// ── Import backup ──
+function importBackup(){
+  const inp=document.createElement('input');
+  inp.type='file';inp.accept='.inkwell,.json';
+  inp.onchange=async e=>{
+    const file=e.target.files[0];
+    if(!file)return;
+    try{
+      const text=await file.text();
+      const data=JSON.parse(text);
+      if(!data.folders||!data.notes)throw new Error('Invalid backup file');
+      app.folders=data.folders;
+      app.notes=data.notes;
+      app.notes.forEach(n=>{if(!n.strokes?.length)n.strokes=[[]];});
+      saveData();
+      renderFolders();renderNotes('all');populateFolderSelect();
+      showStorageToast('✦ Backup imported — '+app.notes.length+' notes restored');
+    }catch(err){
+      showStorageToast('✗ Import failed: '+err.message);
+    }
+  };
+  inp.click();
+}
+
+// ── Delete all data ──
+function clearAllData(){
+  if(!confirm('Delete ALL notes and folders permanently? This cannot be undone.'))return;
+  app.folders=[];app.notes=[];
+  localStorage.removeItem(LS_KEY);
+  if(idb){
+    idbSet(idb,'appdata',{folders:[],notes:[],savedAt:Date.now()}).catch(()=>{});
+  }
+  renderFolders();renderNotes('all');populateFolderSelect();
+  showStorageToast('All data deleted');
+}
+
+function showStorageToast(msg){
+  showBookmarkToast(msg); // reuse bookmark toast
+}
+
+// ── Storage panel (shown from home header) ──
+function toggleStoragePanel(){
+  const existing=document.getElementById('storage-panel');
+  if(existing){existing.remove();return;}
+  const panel=document.createElement('div');
+  panel.id='storage-panel';
+  panel.style.cssText=`
+    position:fixed;top:80px;right:20px;width:280px;
+    background:var(--surface);border:1px solid var(--border2);
+    border-radius:var(--radius);padding:20px;z-index:400;
+    box-shadow:0 24px 64px rgba(0,0,0,0.7);
+    animation:slideDown .2s ease;
+  `;
+  getStorageInfo().then(info=>{
+    panel.innerHTML=`
+      <div style="font-size:10px;letter-spacing:.12em;color:var(--text4);font-family:'DM Mono',monospace;text-transform:uppercase;margin-bottom:14px;">Offline Storage</div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+        <div style="width:8px;height:8px;border-radius:50%;background:#70c08a;flex-shrink:0;box-shadow:0 0 6px #70c08a;"></div>
+        <span style="font-size:13px;color:var(--text2);">IndexedDB active — fully offline</span>
+      </div>
+      <div style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;background:var(--surface2);border-radius:6px;padding:8px 12px;margin-bottom:16px;">${info}</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:16px;line-height:1.6;">
+        All notes are stored directly on this device.<br>No internet required. No account needed.
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button onclick="exportBackup()" style="padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all .15s;text-align:left;padding-left:14px;">
+          ↓ Export backup (.inkwell)
+        </button>
+        <button onclick="importBackup()" style="padding:10px;border-radius:8px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all .15s;text-align:left;padding-left:14px;">
+          ↑ Import backup
+        </button>
+        <button onclick="clearAllData()" style="padding:10px;border-radius:8px;border:1px solid rgba(224,112,112,0.3);background:rgba(224,112,112,0.08);color:#e07070;cursor:pointer;font-size:13px;font-family:'DM Sans',sans-serif;transition:all .15s;text-align:left;padding-left:14px;">
+          ✗ Delete all data
+        </button>
+      </div>
+    `;
+  });
+  document.body.appendChild(panel);
+  // Close on outside click
+  setTimeout(()=>{
+    document.addEventListener('click',function handler(e){
+      if(!panel.contains(e.target)&&e.target.id!=='storage-btn'){
+        panel.remove();
+        document.removeEventListener('click',handler);
+      }
+    });
+  },100);
+}
+
+// ── Patch goHome, createFolder, createNote to save ──
+function goHome(){
+  if(cv.note){cv.note.strokes=cv.strokes;cv.note.updated=Date.now();}
+  saveData();
+  showScreen('home');
+  renderNotes('all');renderFolders();
+}
+
+function createFolder(){
+  const name=document.getElementById('folder-name-input').value.trim()||'New Folder';
+  app.folders.push({id:Date.now().toString(),name,icon:selEmoji,created:Date.now()});
+  closeModal('folder-modal');
+  renderFolders();renderNotes('all');
+  populateFolderSelect();
+  saveData();
+}
+
+function createNote(){
+  const title=document.getElementById('note-title-input').value.trim()||'Untitled';
+  const folderId=document.getElementById('note-folder-select').value||null;
+  const note={
+    id:Date.now().toString(),title,folderId,
+    pageStyle:selStyle,pageColor:selPageColor,
+    strokes:[[]],created:Date.now(),updated:Date.now()
+  };
+  app.notes.unshift(note);
+  closeModal('note-modal');
+  renderFolders();renderNotes('all');
+  saveData();
+  openNote(note);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// INIT — open IndexedDB then load data
+// ═══════════════════════════════════════════════════════════════
+(async function init(){
+  // 1. Open IndexedDB
+  try{
+    idb=await openDB();
+    console.log('%c✦ Inkwell — IndexedDB ready (offline storage active)','color:#c9a96e;font-weight:bold');
+  }catch(e){
+    console.warn('Inkwell: IndexedDB unavailable, using localStorage only',e);
+  }
+
+  // 2. Load data
+  const loaded=await loadData();
+
+  // 3. Seed demo data on first run
+  if(!loaded||app.notes.length===0){
+    app.folders=[
+      {id:'f1',name:'University',icon:'📘',created:Date.now()-86400000*3},
+      {id:'f2',name:'Sketches',icon:'🎨',created:Date.now()-86400000},
+    ];
+    app.notes=[
+      {id:'n1',title:'Lecture Notes — Week 3',folderId:'f1',pageStyle:'medium',pageColor:'white',strokes:[[],[],[],[]],created:Date.now()-7200000,updated:Date.now()-1200000},
+      {id:'n2',title:'Character Studies',folderId:'f2',pageStyle:'blank',pageColor:'dark',strokes:[[]],created:Date.now()-3600000,updated:Date.now()-600000},
+      {id:'n3',title:'Quick Thoughts',folderId:null,pageStyle:'small',pageColor:'cream',strokes:[[]],created:Date.now()-1800000,updated:Date.now()-300000},
+    ];
+    saveData();
+  }
+
+  // 4. Render
+  renderFolders();
+  renderNotes('all');
+  populateFolderSelect();
+})();
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  PRESENTATION MODE
+// ═══════════════════════════════════════════════════════════════
+let pres={page:0,total:0,swipeStartX:0,swipeStartY:0};
+
+function enterPresent(){
+  if(!cv.note)return;
+  saveData();
+  pres.total=cv.strokes.length;
+  pres.page=Math.floor(cScroll.scrollTop/(A4H*cv.zoom));
+  showScreen('present-screen');
+  renderPresentPage();
+  // hide hint after 3s
+  setTimeout(()=>{document.getElementById('present-hint').style.opacity='0';},3000);
+}
+
+function exitPresent(){
+  showScreen('canvas-screen');
+}
+
+function renderPresentPage(){
+  const pc=document.getElementById('present-canvas');
+  const vw=window.innerWidth, vh=window.innerHeight;
+  // fit A4 into viewport
+  const scaleX=vw/A4W, scaleY=vh/A4H;
+  const scale=Math.min(scaleX,scaleY);
+  pc.width=Math.round(A4W*scale);
+  pc.height=Math.round(A4H*scale);
+  const tc=pc.getContext('2d');
+  tc.save();tc.scale(scale,scale);
+  // background
+  const pgBg=PAGE_COLORS.find(c=>c.id===cv.note.pageColor)||PAGE_COLORS[0];
+  tc.fillStyle=pgBg.bg;tc.fillRect(0,0,A4W,A4H);
+  // page lines
+  drawPageLinesCtx(tc,0,cv.note);
+  // strokes for this page
+  const offsetY=pres.page*A4H;
+  (cv.strokes[pres.page]||[]).forEach(s=>{
+    if(s.points.length<2)return;
+    tc.save();
+    tc.strokeStyle=s.color;tc.lineWidth=s.width;
+    tc.lineCap='round';tc.lineJoin='round';tc.beginPath();
+    tc.moveTo(s.points[0].x,s.points[0].y-offsetY);
+    for(let i=1;i<s.points.length-1;i++){
+      const mx=(s.points[i].x+s.points[i+1].x)/2;
+      const my=(s.points[i].y+s.points[i+1].y)/2-offsetY;
+      tc.quadraticCurveTo(s.points[i].x,s.points[i].y-offsetY,mx,my);
+    }
+    const last=s.points[s.points.length-1];
+    tc.lineTo(last.x,last.y-offsetY);
+    tc.stroke();tc.restore();
+  });
+  tc.restore();
+  document.getElementById('present-counter').textContent=(pres.page+1)+' / '+pres.total;
+}
+
+function drawPageLinesCtx(tc,offsetY,note){
+  const style=PAGE_STYLES.find(s=>s.id===note.pageStyle)||PAGE_STYLES[0];
+  if(style.id==='blank')return;
+  const isDark=note.pageColor==='dark'||note.pageColor==='black';
+  const lineColor=isDark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.09)';
+  tc.strokeStyle=lineColor;tc.lineWidth=0.7;
+  if(style.lines&&!style.dot&&!style.grid&&style.lines!=='music'){
+    const step=style.lines*4;
+    for(let y=step;y<A4H;y+=step){tc.beginPath();tc.moveTo(0,offsetY+y);tc.lineTo(A4W,offsetY+y);tc.stroke();}
+  }
+}
+
+function presentNext(){
+  if(pres.page<pres.total-1){pres.page++;renderPresentPage();}
+}
+function presentPrev(){
+  if(pres.page>0){pres.page--;renderPresentPage();}
+}
+
+// Swipe handling in present mode
+const ps=document.getElementById('present-screen');
+ps.addEventListener('touchstart',e=>{pres.swipeStartX=e.touches[0].clientX;pres.swipeStartY=e.touches[0].clientY;},{passive:true});
+ps.addEventListener('touchend',e=>{
+  const dx=e.changedTouches[0].clientX-pres.swipeStartX;
+  const dy=e.changedTouches[0].clientY-pres.swipeStartY;
+  if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>40){
+    dx<0?presentNext():presentPrev();
+  }
+},{passive:true});
+
+// keyboard in present
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('present-screen').classList.contains('active')){
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' ')presentNext();
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp')presentPrev();
+    if(e.key==='Escape')exitPresent();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  ORGANISATION — TAGS
+// ═══════════════════════════════════════════════════════════════
+function openTagModal(){
+  if(!cv.note)return;
+  if(!cv.note.tags)cv.note.tags=[];
+  renderTagList();
+  document.getElementById('tag-input').value='';
+  document.getElementById('tag-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('tag-input').focus(),200);
+}
+
+function renderTagList(){
+  const el=document.getElementById('tag-list');
+  el.innerHTML='';
+  (cv.note.tags||[]).forEach(tag=>{
+    const pill=document.createElement('div');
+    pill.className='tag-pill';
+    pill.innerHTML=`<span>${tag}</span><span class="rm" onclick="removeTag('${tag}')">×</span>`;
+    el.appendChild(pill);
+  });
+  if(!(cv.note.tags||[]).length){
+    el.innerHTML='<span style="color:var(--text4);font-size:13px;">No tags yet</span>';
+  }
+  renderNavTags();
+}
+
+function addTag(){
+  const inp=document.getElementById('tag-input');
+  let val=inp.value.trim();
+  if(!val)return;
+  if(!val.startsWith('#'))val='#'+val;
+  if(!cv.note.tags)cv.note.tags=[];
+  if(!cv.note.tags.includes(val))cv.note.tags.push(val);
+  inp.value='';
+  renderTagList();
+  saveData();
+}
+
+function removeTag(tag){
+  if(!cv.note.tags)return;
+  cv.note.tags=cv.note.tags.filter(t=>t!==tag);
+  renderTagList();
+  saveData();
+}
+
+function renderNavTags(){
+  // collect all tags across notes
+  const allTags=new Set();
+  app.notes.forEach(n=>(n.tags||[]).forEach(t=>allTags.add(t)));
+  const navSec=document.getElementById('nav-tag-section');
+  if(!navSec)return;
+  navSec.innerHTML='';
+  if(!allTags.size)return;
+  const lbl=document.createElement('div');lbl.className='nav-label';lbl.textContent='Tags';
+  navSec.appendChild(lbl);
+  allTags.forEach(tag=>{
+    const d=document.createElement('div');
+    d.className='nav-tag';
+    d.innerHTML=`<div class="tag-dot"></div>${tag}`;
+    d.onclick=()=>{
+      app.activeFolder=null;
+      const filtered=app.notes.filter(n=>(n.tags||[]).includes(tag));
+      renderFilteredNotes(filtered);
+    };
+    navSec.appendChild(d);
+  });
+}
+
+function renderFilteredNotes(notes){
+  showScreen('home');
+  const grid=document.getElementById('notes-grid');
+  grid.innerHTML='';
+  if(!notes.length){grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><p>No notes with this tag.</p></div>';return;}
+  notes.forEach(n=>{
+    const card=document.createElement('div');card.className='note-card';
+    const pgBg=PAGE_COLORS.find(c=>c.id===n.pageColor)||PAGE_COLORS[0];
+    card.innerHTML=`<div class="note-thumb" style="background:${pgBg.bg}"><canvas id="nth-${n.id}" width="210" height="160"></canvas><div class="note-pages-badge">${n.strokes.length} pg</div></div><div class="note-info"><div class="note-title">${n.title}</div><div class="note-meta">${timeAgo(n.updated)}</div></div>`;
+    card.onclick=()=>openNote(n);
+    grid.appendChild(card);
+    setTimeout(()=>drawNoteThumb(n),10);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  ORGANISATION — BOOKMARKS
+// ═══════════════════════════════════════════════════════════════
+function bookmarkCurrentPage(){
+  if(!cv.note)return;
+  if(!cv.note.bookmarks)cv.note.bookmarks=[];
+  const pg=Math.floor(cScroll.scrollTop/(A4H*cv.zoom));
+  const idx=cv.note.bookmarks.indexOf(pg);
+  if(idx>-1){
+    cv.note.bookmarks.splice(idx,1);
+    showBookmarkToast('Bookmark removed');
+  } else {
+    cv.note.bookmarks.push(pg);
+    showBookmarkToast('🔖 Page '+( pg+1)+' bookmarked');
+  }
+  refreshSnapBookmarks();
+  saveData();
+}
+
+function refreshSnapBookmarks(){
+  document.querySelectorAll('.snap-item').forEach((el,i)=>{
+    el.classList.toggle('bookmarked',(cv.note.bookmarks||[]).includes(i));
+    // ensure bookmark corner exists
+    if(!el.querySelector('.bk-corner')){
+      const c=document.createElement('div');c.className='bk-corner';el.appendChild(c);
+    }
+  });
+}
+
+function showBookmarkToast(msg){
+  const el=document.getElementById('bookmark-toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  ORGANISATION — PAGE REORDER (drag in sidebar)
+// ═══════════════════════════════════════════════════════════════
+let dragPage={active:false,from:-1,ghost:null};
+
+function enableSnapDrag(){
+  const list=document.getElementById('snap-list');
+  list.addEventListener('touchstart',e=>{
+    const item=e.target.closest('.snap-item');
+    if(!item)return;
+    const idx=+item.dataset.idx;
+    dragPage.active=true;dragPage.from=idx;
+    item.style.opacity='0.4';
+    dragPage.ghost=item;
+  },{passive:true});
+  list.addEventListener('touchmove',e=>{
+    if(!dragPage.active)return;
+    const t=e.touches[0];
+    const els=document.elementsFromPoint(t.clientX,t.clientY);
+    const target=els.find(el=>el.classList.contains('snap-item')&&el!==dragPage.ghost);
+    if(target){
+      const toIdx=+target.dataset.idx;
+      if(toIdx!==dragPage.from){
+        // reorder
+        const pg=cv.strokes.splice(dragPage.from,1)[0];
+        cv.strokes.splice(toIdx,0,pg);
+        if(cv.note)cv.note.strokes=cv.strokes;
+        dragPage.from=toIdx;
+        buildThumbs();refreshSnapBookmarks();
+        redrawAll();saveData();
+      }
+    }
+  },{passive:true});
+  list.addEventListener('touchend',()=>{
+    if(dragPage.ghost)dragPage.ghost.style.opacity='';
+    dragPage.active=false;dragPage.from=-1;dragPage.ghost=null;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  WRITING COMFORT — PANEL + FEATURES
+// ═══════════════════════════════════════════════════════════════
+const comfort={wrist:false,margin:false,bsnap:false,ascroll:true,guides:false,stab:0};
+
+function toggleComfortPanel(){
+  const p=document.getElementById('comfort-panel');
+  p.classList.toggle('open');
+}
+
+function toggleComfort(key){
+  comfort[key]=!comfort[key];
+  const el=document.getElementById('tog-'+key);
+  if(el)el.classList.toggle('on',comfort[key]);
+  applyComfort(key);
+}
+
+function applyComfort(key){
+  if(key==='wrist'){
+    document.getElementById('wrist-guard').style.display=comfort.wrist?'block':'none';
+  }
+  if(key==='margin'){
+    const ml=document.getElementById('margin-line');
+    ml.style.display=comfort.margin?'block':'none';
+  }
+  if(key==='guides'){
+    renderWritingGuides();
+  }
+}
+
+function setStabilizer(v){
+  comfort.stab=+v;
+  document.getElementById('stab-val').textContent=v;
+}
+
+// Baseline snap — nudge Y toward nearest line when bsnap active
+function applyBaselineSnap(y){
+  if(!comfort.bsnap||!cv.note)return y;
+  const style=PAGE_STYLES.find(s=>s.id===cv.note.pageStyle);
+  if(!style||!style.lines||style.lines==='music'||style.dot||style.grid)return y;
+  const step=style.lines*4;
+  const nearestLine=Math.round(y/step)*step;
+  const dist=Math.abs(y-nearestLine);
+  if(dist<step*0.35)return y+(nearestLine-y)*0.4; // soft pull
+  return y;
+}
+
+// Ink stabilizer — smooth points using lazy needle
+function stabilizePoint(raw){
+  if(comfort.stab===0||!cv.currentStroke||cv.currentStroke.points.length===0)return raw;
+  const lag=comfort.stab/10; // 0–0.8
+  const last=cv.currentStroke.points[cv.currentStroke.points.length-1];
+  return{
+    x:last.x+(raw.x-last.x)*(1-lag),
+    y:last.y+(raw.y-last.y)*(1-lag)
+  };
+}
+
+// Writing guides
+function renderWritingGuides(){
+  const gc=document.getElementById('guides-canvas');
+  if(!comfort.guides){gc.style.display='none';return;}
+  gc.style.display='block';
+  const pages=cv.strokes.length;
+  gc.width=A4W;gc.height=A4H*pages;
+  gc.style.width=(A4W*cv.zoom)+'px';gc.style.height=(A4H*pages*cv.zoom)+'px';
+  const tc=gc.getContext('2d');
+  tc.clearRect(0,0,A4W,A4H*pages);
+  tc.fillStyle='rgba(201,169,110,0.5)';
+  const step=24;
+  for(let p=0;p<pages;p++){
+    const oy=p*A4H;
+    for(let y=step;y<A4H;y+=step)
+      for(let x=step;x<A4W;x+=step){
+        tc.beginPath();tc.arc(x,oy+y,1.2,0,Math.PI*2);tc.fill();
+      }
+  }
+}
+
+// Auto-scroll while writing
+function checkAutoScroll(pos){
+  if(!comfort.ascroll)return;
+  const cr=canvas.getBoundingClientRect();
+  const screenY=pos.y*cv.zoom+cr.top;
+  const vh=window.innerHeight;
+  const threshold=vh*0.82;
+  if(screenY>threshold){
+    cScroll.scrollBy({top:6,behavior:'instant'});
+  }
+}
+
+// Patch onMoveV2 to call auto-scroll and comfort features
+const _omv2=onMoveV2;
+function onMoveV2(e){
+  if(!cv.drawing)return;
+  if(ruler.dragging)return;
+  let pos=getPos(e);
+  const snapped=snapToRuler(pos.x,pos.y);
+  if(snapped)pos=snapped;
+
+  // baseline snap
+  pos.y=applyBaselineSnap(pos.y);
+
+  if(cv.tool==='pe'){
+    const ec=document.getElementById('eraser-ring');
+    const cx2=e.touches?e.touches[0].clientX:e.clientX;
+    const cy2=e.touches?e.touches[0].clientY:e.clientY;
+    const sz=THICK[cv.thick-1]*2.5*cv.zoom;
+    ec.style.left=cx2+'px';ec.style.top=cy2+'px';ec.style.width=sz+'px';ec.style.height=sz+'px';ec.style.display='block';
+    erasePixel(pos);
+  }
+  if((cv.tool==='pen'||cv.tool==='shape')&&cv.currentStroke){
+    const stabilized=stabilizePoint(pos);
+    cv.currentStroke.points.push(stabilized);
+    drawStroke(ctx,cv.currentStroke);
+    checkAutoScroll(stabilized);
+  } else if(cv.tool==='se'){
+    eraseStroke(pos);
+  }
+}
+
+// Wrist guard — block ink in bottom zone
+function isWristZone(e){
+  if(!comfort.wrist)return false;
+  const clientY=e.touches?e.touches[0].clientY:e.clientY;
+  return clientY>window.innerHeight*0.78;
+}
+
+// Patch onDownV2 for wrist guard
+const _odv2=onDownV2;
+function onDownV2(e){
+  if(isPalm(e))return;
+  if(isWristZone(e))return;
+  if(ruler.dragging)return;
+  cv.drawing=true;cv.redoStack=[];
+  let pos=getPos(e);
+  const snapped=snapToRuler(pos.x,pos.y);
+  if(snapped)pos=snapped;
+  pos.y=applyBaselineSnap(pos.y);
+  if(cv.tool==='pen'||cv.tool==='shape'){
+    cv.currentStroke={color:cv.color,width:THICK[cv.thick-1],points:[pos]};
+  } else if(cv.tool==='se'){eraseStroke(pos);}
+  else if(cv.tool==='pe'){erasePixel(pos);}
+}
+
+// Margin line positioning (15% of A4W in canvas coords)
+function positionMarginLine(){
+  const ml=document.getElementById('margin-line');
+  const cRect=document.getElementById('canvas-inner').getBoundingClientRect();
+  const railW=document.getElementById('rail').offsetWidth;
+  ml.style.left=(railW+A4W*0.15*cv.zoom)+'px';
+  ml.style.top=cRect.top+'px';
+  ml.style.bottom='0';
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  PATCH buildThumbs to add bookmark corners + data-idx
+// ═══════════════════════════════════════════════════════════════
+const _origBuildThumbs=buildThumbs;
+function buildThumbs(){
+  const list=document.getElementById('snap-list');
+  list.innerHTML='';cv.thumbCtxs=[];
+  cv.strokes.forEach((_,i)=>{
+    const item=document.createElement('div');
+    item.className='snap-item'+(i===0?' active':'');
+    item.dataset.idx=i;
+    item.onclick=()=>goToPage(i);
+    const wrap=document.createElement('div');wrap.className='snap-canvas';
+    const tc=document.createElement('canvas');tc.width=84;tc.height=119;
+    wrap.appendChild(tc);item.appendChild(wrap);
+    const pn=document.createElement('div');pn.className='snap-pgnum';pn.textContent=i+1;
+    item.appendChild(pn);
+    // bookmark corner
+    const bk=document.createElement('div');bk.className='bk-corner';item.appendChild(bk);
+    list.appendChild(item);
+    cv.thumbCtxs.push(tc.getContext('2d'));
+    updateThumb(i);
+  });
+  refreshSnapBookmarks();
+  enableSnapDrag();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  PATCH home nav to include tag section
+// ═══════════════════════════════════════════════════════════════
+// Add tag section to nav on home screen
+document.addEventListener('DOMContentLoaded',()=>{
+  const nav=document.getElementById('home-nav');
+  if(nav){
+    const sec=document.createElement('div');sec.id='nav-tag-section';
+    nav.appendChild(sec);
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  KEYBOARD — extended
+// ═══════════════════════════════════════════════════════════════
+document.addEventListener('keydown',e=>{
+  if(document.getElementById('canvas-screen').classList.contains('active')){
+    if(e.key==='b'||e.key==='B')bookmarkCurrentPage();
+    if(e.key==='t'||e.key==='T')openTagModal();
+    if(e.key==='F'||e.key==='f')enterPresent();
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════
+// ██████  SERVICE WORKER REGISTRATION (PWA offline support)
+// Only registers on real deployments — skipped inside iframes/previews
+// ═══════════════════════════════════════════════════════════════
+if('serviceWorker' in navigator){
+  // Skip if running inside an iframe (Claude preview, CodePen, etc.)
+  const isIframe = window.self !== window.top;
+  // Skip if running on localhost without explicit sw.js
+  const isPreview = location.hostname.includes('claudeusercontent') ||
+                    location.hostname.includes('codepen') ||
+                    location.hostname.includes('codesandbox') ||
+                    location.hostname.includes('stackblitz');
+
+  if(!isIframe && !isPreview){
+    window.addEventListener('load',()=>{
+      navigator.serviceWorker.register('./sw.js')
+        .then(reg=>{
+          console.log('%c✦ Inkwell PWA — service worker registered (offline ready)','color:#c9a96e;font-weight:bold');
+          reg.addEventListener('updatefound',()=>{
+            const newWorker=reg.installing;
+            newWorker.addEventListener('statechange',()=>{
+              if(newWorker.state==='installed'&&navigator.serviceWorker.controller){
+                showBookmarkToast('✦ App updated — refresh to apply');
+              }
+            });
+          });
+        })
+        .catch(err=>console.warn('SW registration failed:',err));
+    });
+  } else {
+    console.log('%c✦ Inkwell — running in preview mode (service worker skipped)','color:#c9a96e;');
+  }
+}
+</script>
+</body>
+</html>
