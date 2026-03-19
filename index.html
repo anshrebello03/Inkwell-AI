@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Inkwell">
 <meta name="theme-color" content="#0b0b0e">
+<!-- Prevent Split View / Slide Over resizing when installed as PWA -->
+<meta name="apple-touch-fullscreen" content="yes">
 <title>Inkwell</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Inter:wght@300;400;500&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
 <link rel="manifest" href="manifest.json">
@@ -36,8 +38,13 @@
   --r:12px;--rs:8px;--rx:18px;
   --rail:60px;--side:92px;
 }
-html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--t1);
-  font-family:'Inter',sans-serif;font-size:14px;position:fixed;inset:0;}
+html,body{
+  width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--t1);
+  font-family:'Inter',sans-serif;font-size:14px;position:fixed;inset:0;
+  /* Prevent Split View / Slide Over from shrinking the app */
+  min-width:100vw;min-height:100vh;
+  touch-action:none;
+}
 
 /* ── SCREENS ── */
 .screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden;}
@@ -1907,7 +1914,7 @@ function showHoldRing(clientX,clientY){
     border:2px solid var(--gold);
     transform:translate(-50%,-50%) scale(0);
     pointer-events:none;z-index:800;
-    animation:holdRingAnim 0.6s cubic-bezier(.2,.8,.4,1) forwards;
+    animation:holdRingAnim 2s cubic-bezier(.2,.8,.4,1) forwards;
   `;
   document.body.appendChild(holdIndicator);
 }
@@ -1986,8 +1993,8 @@ function onMove(e,pc){
   // Toolbar fade — start countdown while drawing
   startToolbarFade();
 
-  // Hold timer for auto-shape
-  if(cv.tool==='pen'&&cv.currentStroke&&cv.currentStroke.points.length>0){
+  // Auto-shape hold — only for shape tool, never pen
+  if(cv.tool==='shape'&&cv.currentStroke&&cv.currentStroke.points.length>0){
     const last=cv.currentStroke.points[cv.currentStroke.points.length-1];
     const dx=x-last.x,dy=y-last.y;
     const moveDist=Math.sqrt(dx*dx+dy*dy);
@@ -1996,7 +2003,7 @@ function onMove(e,pc){
       const cx2=e.touches?e.touches[0].clientX:e.clientX;
       const cy2=e.touches?e.touches[0].clientY:e.clientY;
       showHoldRing(cx2,cy2);
-      holdTimer=setTimeout(()=>{clearHoldTimer();triggerAutoShape(pageIdx);},620);
+      holdTimer=setTimeout(()=>{clearHoldTimer();triggerAutoShape(pageIdx);},2000);
     }
   }
 
@@ -2097,7 +2104,6 @@ function onUp(e,pc){
     checkAutoPage(cv.currentStroke.points,pg);
 
     if(cv.tool==='shape')finishShapeStroke(cv.currentStroke.points,pg);
-    else if(cv.tool==='pen')maybeAutoSnapPen(cv.currentStroke.points,pg);
   }
   cv.currentStroke=null;
 }
@@ -2353,7 +2359,7 @@ function setTool(t){
   });
   const cursors={pen:'crosshair',hl:'crosshair',se:'cell',pe:'none',shape:'crosshair'};
   document.querySelectorAll('.page-canvas').forEach(c=>c.style.cursor=cursors[t]||'crosshair');
-  const labels={pen:'✏  Pen',hl:'🖊  Highlighter',se:'◻ Stroke Eraser',pe:'◉ Pixel Eraser',shape:'⬡  Shape'};
+  const labels={pen:'✏  Pen',hl:'🖊  Highlighter',se:'◻ Stroke Eraser',pe:'◉ Pixel Eraser',shape:'⬡  Shape — draw & hold 2s to snap'};
   showToast('mode-toast',labels[t]||t);
   if(t!=='se'&&t!=='pe')closeEraserPicker();
   // Update highlighter color dot visibility
@@ -2684,7 +2690,28 @@ function updateWristGuard(){
   const sideW=snapVisible?document.getElementById('snap-sidebar').offsetWidth:0;
   wg.style.left=railW+'px';wg.style.right=sideW+'px';wg.style.height='20%';
 }
-window.addEventListener('resize',()=>{recalcFitZoom();updateWristGuard();});
+// Resist Split View / Slide Over — snap back to full dimensions on resize
+let resizeDebounce=null;
+window.addEventListener('resize',()=>{
+  // Always recalc zoom to fit current window
+  recalcFitZoom();
+  updateWristGuard();
+
+  // If running as installed PWA and window shrank significantly,
+  // force body back to full screen dimensions
+  clearTimeout(resizeDebounce);
+  resizeDebounce=setTimeout(()=>{
+    const isStandalone=window.navigator.standalone||
+      window.matchMedia('(display-mode: standalone)').matches||
+      window.matchMedia('(display-mode: fullscreen)').matches;
+    if(isStandalone){
+      // Re-lock canvas inner to current window size
+      document.body.style.width=window.innerWidth+'px';
+      document.body.style.height=window.innerHeight+'px';
+      recalcFitZoom();
+    }
+  },150);
+});
 
 // ═══════════════════════════════════════════════════════════════
 // SHAPE RECOGNITION
@@ -2703,7 +2730,7 @@ function finishShapeStroke(points,pg){
       redrawPage(pg);updateThumb(pg);markDirty(pg);
       showToast('mode-toast',`⬡ ${snapped.shapeName} snapped`);
     }
-  },480);
+  },2000);
 }
 // Auto-snap on pen tool — only if stroke is very clearly geometric
 // (high confidence threshold so normal handwriting never triggers)
