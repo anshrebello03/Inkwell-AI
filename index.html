@@ -1840,7 +1840,6 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 // OPEN NOTE → CANVAS
 // ═══════════════════════════════════════════════════════════════
 async function openNote(note){
-  // flush any pending saves from previous note
   clearTimeout(cv.saveTimer);
   if(cv.note&&cv.dirtyPages.size>0)await flushDirtyPages();
 
@@ -1851,21 +1850,29 @@ async function openNote(note){
   const isDark=note.pageColor==='dark'||note.pageColor==='black';
   cv.color=isDark?'#f0ece6':'#1a1a1a';
   updateRailColor();
-
   document.getElementById('canvas-title').textContent=note.title;
-  showScreen('canvas-screen');
-  initToolbarFade();
 
-  // load progress
+  // Load strokes FIRST before touching the screen
   const pages=note.pageCount||1;
   for(let i=0;i<pages;i++){
     const strokes=await loadPageStrokes(note.id,i);
     cv.strokes.push(strokes);
   }
 
+  // Build all page canvases while still on home screen — no blank flash
   initCanvas();
+
+  // Switch screen only after pages are fully rendered
+  showScreen('canvas-screen');
+  initToolbarFade();
   setTool('pen');
   document.querySelector('.thick-btn[data-t="1"]').click();
+
+  // Recalc zoom after layout settles
+  requestAnimationFrame(()=>{
+    recalcFitZoom();
+    cScroll.scrollTop=0;
+  });
 }
 
 function goHome(){
@@ -1895,15 +1902,10 @@ function initCanvas(){
   cInner.innerHTML='';
   pageDOMs=[];cv.offscreens=[];
   const pages=cv.strokes.length;
-
   for(let i=0;i<pages;i++){
     createPageDOM(i);
   }
-
-  recalcFitZoom();
   buildThumbs();
-  // scroll to top
-  setTimeout(()=>cScroll.scrollTop=0,50);
 }
 
 function createPageDOM(i){
